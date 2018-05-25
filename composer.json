@@ -18,6 +18,5 @@
     "psr-4": {
       "EasySwoole\\Spl\\": "src/"
     }
-  },
-  "minimum-stability": "dev"
+  }
 }
