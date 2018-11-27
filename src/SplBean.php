@@ -126,7 +126,7 @@ class SplBean implements \JsonSerializable
      * 如果需要用到keyMap  请在子类重构并返回对应的map数据
      * return ['dataKey'=>'beanKey']
      */
-    protected function setKeyMap():array
+    protected function setKeyMapping():array
     {
         return [];
     }
