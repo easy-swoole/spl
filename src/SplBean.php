@@ -21,7 +21,7 @@ class SplBean implements \JsonSerializable
 
     public function __construct(array $data = null,$autoCreateProperty = false)
     {
-        $this->_keyMap = $this->setKeyMap();
+        $this->_keyMap = $this->setKeyMapping();
         if($data){
             $this->arrayToBean($data,$autoCreateProperty);
         }
@@ -97,7 +97,6 @@ class SplBean implements \JsonSerializable
 
     final public function jsonSerialize():array
     {
-        // TODO: Implement jsonSerialize() method.
         $data = [];
         foreach ($this as $key => $item){
             $data[$key] = $item;
@@ -133,7 +132,6 @@ class SplBean implements \JsonSerializable
 
     public function __toString()
     {
-        // TODO: Implement __toString() method.
         return json_encode($this->jsonSerialize(),JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
     }
 
