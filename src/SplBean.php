@@ -16,8 +16,12 @@ class SplBean implements \JsonSerializable
 {
     const FILTER_NOT_NULL = 1;
     const FILTER_NOT_EMPTY = 2;//0 不算empty
+
+    private $_keyMap = [];
+
     public function __construct(array $data = null,$autoCreateProperty = false)
     {
+        $this->_keyMap = $this->setKeyMap();
         if($data){
             $this->arrayToBean($data,$autoCreateProperty);
         }
@@ -59,6 +63,15 @@ class SplBean implements \JsonSerializable
 
     final public function arrayToBean(array $data,$autoCreateProperty = false):SplBean
     {
+        //先做keyMap转化
+        if(!empty($this->_keyMap)){
+            foreach ($this->_keyMap as $dataKey => $beanKey){
+                if(array_key_exists($dataKey,$data)){
+                    $data[$beanKey] = $data[$dataKey];
+                    unset($data[$dataKey]);
+                }
+            }
+        }
         if($autoCreateProperty == false){
             $data = array_intersect_key($data,array_flip($this->allProperty()));
         }
@@ -89,6 +102,15 @@ class SplBean implements \JsonSerializable
         foreach ($this as $key => $item){
             $data[$key] = $item;
         }
+        unset($data['_keyMap']);
+        if(!empty($this->_keyMap)){
+            foreach ($this->_keyMap as $dataKey => $beanKey){
+                if(array_key_exists($beanKey,$data)){
+                    $data[$dataKey] = $data[$beanKey];
+                    unset($data[$beanKey]);
+                }
+            }
+        }
         return $data;
     }
 
@@ -98,6 +120,15 @@ class SplBean implements \JsonSerializable
     protected function initialize():void
     {
 
+    }
+
+    /*
+     * 如果需要用到keyMap  请在子类重构并返回对应的map数据
+     * return ['dataKey'=>'beanKey']
+     */
+    protected function setKeyMap():array
+    {
+        return [];
     }
 
     public function __toString()
