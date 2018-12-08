@@ -77,19 +77,7 @@ class SplArray extends \ArrayObject
 
     public function delete($key): void
     {
-        $path = explode(".", $key);
-        $lastKey = array_pop($path);
-        $data = $this->getArrayCopy();
-        $copy = &$data;
-        while ($key = array_shift($path)){
-            if(isset($copy[$key])){
-                $copy = &$copy[$key];
-            }else{
-                return;
-            }
-        }
-        unset($copy[$lastKey]);
-        parent::__construct($data);
+        $this->unset($key);
     }
 
     /**
