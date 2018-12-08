@@ -21,7 +21,7 @@ class SplBean implements \JsonSerializable
 
     public function __construct(array $data = null,$autoCreateProperty = false)
     {
-        $this->_keyMap = $this->setKeyMap();
+        $this->_keyMap = $this->setKeyMapping();
         if($data){
             $this->arrayToBean($data,$autoCreateProperty);
         }
@@ -65,7 +65,7 @@ class SplBean implements \JsonSerializable
     {
         //先做keyMap转化
         if(!empty($this->_keyMap)){
-            foreach ($this->_keyMap as $dataKey => $beanKey){
+            foreach ($this->_keyMap as $beanKey => $dataKey) {
                 if(array_key_exists($dataKey,$data)){
                     $data[$beanKey] = $data[$dataKey];
                     unset($data[$dataKey]);
@@ -97,14 +97,13 @@ class SplBean implements \JsonSerializable
 
     final public function jsonSerialize():array
     {
-        // TODO: Implement jsonSerialize() method.
         $data = [];
         foreach ($this as $key => $item){
             $data[$key] = $item;
         }
         unset($data['_keyMap']);
         if(!empty($this->_keyMap)){
-            foreach ($this->_keyMap as $dataKey => $beanKey){
+            foreach ($this->_keyMap as $beanKey => $dataKey) {
                 if(array_key_exists($beanKey,$data)){
                     $data[$dataKey] = $data[$beanKey];
                     unset($data[$beanKey]);
@@ -133,7 +132,6 @@ class SplBean implements \JsonSerializable
 
     public function __toString()
     {
-        // TODO: Implement __toString() method.
         return json_encode($this->jsonSerialize(),JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
     }
 
