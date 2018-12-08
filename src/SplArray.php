@@ -173,13 +173,18 @@ class SplArray extends \ArrayObject
         return new SplArray($new);
     }
 
-    /**
-     * 提取数组中的键
-     * @return SplArray
-     */
-    public function keys(): SplArray
+
+    public function keys($path = null): array
     {
-        return new SplArray(array_keys($this->getArrayCopy()));
+        if(!empty($path)){
+            $temp = $this->get($path);
+            if(is_array($temp)){
+                return array_keys($temp);
+            }else{
+                return [];
+            }
+        }
+        return array_keys((array)$this);
     }
 
     /**
