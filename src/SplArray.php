@@ -47,6 +47,20 @@ class SplArray extends \ArrayObject
         $temp = $value;
     }
 
+    function unset($path)
+    {
+        $finalKey = null;
+        $path = explode(".", $path);
+        $temp = $this;
+        while (count($path) > 1 && $key = array_shift($path)) {
+            $temp = &$temp[$key];
+        }
+        $finalKey = array_shift($path);
+        if(isset($temp[$finalKey])){
+            unset($temp[$finalKey]);
+        }
+    }
+
     function get($path)
     {
         $paths = explode(".", $path);
