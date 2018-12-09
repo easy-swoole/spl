@@ -61,6 +61,41 @@ class SplBean implements \JsonSerializable
         return $data;
     }
 
+    /*
+     * 返回转化后的array
+     */
+    function toArrayWithMapping(array $columns = null,$filter = null)
+    {
+        $array = $this->toArray();
+        if(!empty($this->_keyMap)){
+            foreach ($this->_keyMap as $beanKey => $dataKey) {
+                if(array_key_exists($beanKey,$array)){
+                    $array[$dataKey] = $array[$beanKey];
+                    unset($array[$beanKey]);
+                }
+            }
+        }
+        if($columns){
+            $array = array_intersect_key($array, array_flip($columns));
+        }
+        if($filter === self::FILTER_NOT_NULL){
+            return array_filter($array,function ($val){
+                return !is_null($val);
+            });
+        }else if($filter === self::FILTER_NOT_EMPTY){
+            return array_filter($array,function ($val){
+                if($val === 0 || $val === '0'){
+                    return true;
+                }else{
+                    return !empty($val);
+                }
+            });
+        }else if(is_callable($filter)){
+            return array_filter($array,$filter);
+        }
+        return $array;
+    }
+
     final public function arrayToBean(array $data,$autoCreateProperty = false):SplBean
     {
         //先做keyMap转化
@@ -102,14 +137,6 @@ class SplBean implements \JsonSerializable
             $data[$key] = $item;
         }
         unset($data['_keyMap']);
-        if(!empty($this->_keyMap)){
-            foreach ($this->_keyMap as $beanKey => $dataKey) {
-                if(array_key_exists($beanKey,$data)){
-                    $data[$dataKey] = $data[$beanKey];
-                    unset($data[$beanKey]);
-                }
-            }
-        }
         return $data;
     }
 
