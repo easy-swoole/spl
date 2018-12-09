@@ -104,9 +104,9 @@ class SplBean implements \JsonSerializable
         unset($data['_keyMap']);
         if(!empty($this->_keyMap)){
             foreach ($this->_keyMap as $beanKey => $dataKey) {
-                if(array_key_exists($beanKey,$data)){
-                    $data[$dataKey] = $data[$beanKey];
-                    unset($data[$beanKey]);
+                if(array_key_exists($dataKey,$data)){
+                    $data[$beanKey] = $data[$dataKey];
+                    unset($data[$dataKey]);
                 }
             }
         }
