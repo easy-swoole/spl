@@ -11,12 +11,10 @@ namespace EasySwoole\Spl;
 
 class SplEnum
 {
-    const __DEFAULT = '__DEFAULT';
-
-    private $val = self::__DEFAULT;
+    private $val = null;
     private $name = '__DEFAULT';
 
-    final public function __construct($val = null)
+    final public function __construct($val)
     {
         $list = self::getConstants();
         //禁止重复值
@@ -24,12 +22,10 @@ class SplEnum
             $class = static::class;
             throw new \Exception("class : {$class} define duplicate value");
         }
-        if($val !== null){
-            $this->val = $val;
-            $this->name = self::isValidValue($val);
-            if($this->name === false){
-                throw new \Exception("invalid value");
-            }
+        $this->val = $val;
+        $this->name = self::isValidValue($val);
+        if($this->name === false){
+            throw new \Exception("invalid value");
         }
     }
 
