@@ -12,7 +12,7 @@ namespace EasySwoole\Spl;
 class SplEnum
 {
     private $val = null;
-    private $name = '__DEFAULT';
+    private $name = null;
 
     final public function __construct($val)
     {
