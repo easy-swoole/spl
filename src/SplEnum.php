@@ -17,6 +17,9 @@ class SplEnum
     final public function __construct($val)
     {
         $list = self::getConstants();
+        if(isset($list['DEFAULT'])){
+            unset($list['DEFAULT']);
+        }
         //禁止重复值
         if (count($list) != count(array_unique($list))) {
             $class = static::class;
@@ -53,6 +56,11 @@ class SplEnum
     {
         $list = self::getConstants();
         return array_search($val,$list);
+    }
+
+    final public static function getEnumList():array
+    {
+        return self::getConstants();
     }
 
     private final static function getConstants():array
