@@ -69,7 +69,7 @@ class SplEnum
         }
     }
 
-    final function __toString()
+    function __toString()
     {
         // TODO: Implement __toString() method.
         return (string)$this->getName();
