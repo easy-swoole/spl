@@ -219,11 +219,14 @@ class SplArray extends \ArrayObject
         ]
     ]);
      */
-    public function toXML($CD_DATA = false,$rootName = 'xml')
+    public function toXML($CD_DATA = false,$rootName = 'xml',$encoding = 'UTF-8')
     {
         $data = $this->getArrayCopy();
         if($CD_DATA){
-            $xml = new class("<{$rootName}></{$rootName}>") extends \SimpleXMLElement{
+            /*
+             * 默认制定
+             */
+            $xml = new class('<?xml version="1.0" encoding="'.$encoding.'" ?>'."<{$rootName}></{$rootName}>") extends \SimpleXMLElement{
                 public function addCData($cdata_text) {
                     $dom = dom_import_simplexml($this);
                     $cdata = $dom->ownerDocument->createCDATASection($cdata_text);
@@ -231,7 +234,7 @@ class SplArray extends \ArrayObject
                 }
             };
         }else{
-            $xml = new \SimpleXMLElement("<{$rootName}></{$rootName}>");
+            $xml = new \SimpleXMLElement('<?xml version="1.0" encoding="'.$encoding.'" ?>'."<{$rootName} ></{$rootName}>");
         }
         $parser = function ($xml,$data)use(&$parser,$CD_DATA){
             foreach($data as $k => $v){
@@ -258,7 +261,8 @@ class SplArray extends \ArrayObject
         };
         $parser($xml,$data);
         unset($parser);
-        return substr($xml->asXML(),strlen('<?xml version="1.0"?>')+1);
+        $str = $xml->asXML();
+        return substr($str,strpos($str,"\n")+1);
     }
 
 }
