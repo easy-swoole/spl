@@ -208,4 +208,12 @@ class SplArray extends \ArrayObject
     {
         parent::__construct($data);
     }
+
+    public function toXML()
+    {
+        $xml = new \SimpleXMLElement('<xml/>');
+        $data = $this->getArrayCopy();
+        array_walk_recursive($data, array ($xml, 'addChild'));
+        return substr($xml->asXML(),strlen('<?xml version="1.0"?>')+1);
+    }
 }
