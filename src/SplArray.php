@@ -209,11 +209,56 @@ class SplArray extends \ArrayObject
         parent::__construct($data);
     }
 
-    public function toXML()
+    /*
+     $test = new \EasySwoole\Spl\SplArray([
+        'title'=>'title',
+        'items'=>[
+            ['title'=>'Some string', 'number' => 1],
+            ['title'=>'Some string', 'number' => 2],
+            ['title'=>'Some string', 'number' => 3]
+        ]
+    ]);
+     */
+    public function toXML($CD_DATA = false,$rootName = 'xml')
     {
-        $xml = new \SimpleXMLElement('<xml/>');
         $data = $this->getArrayCopy();
-        array_walk_recursive($data, array ($xml, 'addChild'));
+        if($CD_DATA){
+            $xml = new class("<{$rootName}></{$rootName}>") extends \SimpleXMLElement{
+                public function addCData($cdata_text) {
+                    $dom = dom_import_simplexml($this);
+                    $cdata = $dom->ownerDocument->createCDATASection($cdata_text);
+                    $dom->appendChild($cdata);
+                }
+            };
+        }else{
+            $xml = new \SimpleXMLElement("<{$rootName}></{$rootName}>");
+        }
+        $parser = function ($xml,$data)use(&$parser,$CD_DATA){
+            foreach($data as $k => $v){
+                if(is_array($v)) {
+                    if (!is_numeric($k)){
+                        $ch= $xml->addChild($k);
+                    } else{
+                        $ch = $xml->addChild(substr($xml->getName(),0,-1));
+                    }
+                    $parser($ch,$v);
+                } else {
+                    if (is_numeric($v)){
+                        $xml->addChild($k, $v);
+                    }else{
+                        if($CD_DATA){
+                            $n = $xml->addChild($k);
+                            $n->addCData($v);
+                        }else{
+                            $xml->addChild($k, $v);
+                        }
+                    }
+                }
+            }
+        };
+        $parser($xml,$data);
+        unset($parser);
         return substr($xml->asXML(),strlen('<?xml version="1.0"?>')+1);
     }
+
 }
