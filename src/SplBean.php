@@ -41,7 +41,7 @@ class SplBean implements \JsonSerializable
             array_push($data,$key);
         }
         unset($data['_keyMap']);
-        unset($data['_typeMap']);
+        unset($data['_classMap']);
         return $data;
     }
 
@@ -145,7 +145,7 @@ class SplBean implements \JsonSerializable
             $data[$key] = $item;
         }
         unset($data['_keyMap']);
-        unset($data['_typeMap']);
+        unset($data['_classMap']);
         return $data;
     }
 
