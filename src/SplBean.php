@@ -26,7 +26,7 @@ class SplBean implements \JsonSerializable
     public function __construct(array $data = null,$autoCreateProperty = false)
     {
         $this->_keyMap = $this->setKeyMapping();
-        $this->_classMap = $this->setTypeMapping();
+        $this->_classMap = $this->setClassMapping();
         if($data){
             $this->arrayToBean($data,$autoCreateProperty);
         }
@@ -168,7 +168,7 @@ class SplBean implements \JsonSerializable
     /*
      * return ['property'=>class string]
      */
-    protected function setTypeMapping():array
+    protected function setClassMapping():array
     {
         return [];
     }
