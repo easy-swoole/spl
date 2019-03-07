@@ -21,17 +21,17 @@ class SplBean implements \JsonSerializable
     const FILTER_NOT_EMPTY = 2;//0 不算empty
 
     private $_keyMap = [];
-    private $_typeMap = [];
+    private $_classMap = [];
 
     public function __construct(array $data = null,$autoCreateProperty = false)
     {
         $this->_keyMap = $this->setKeyMapping();
-        $this->_typeMap = $this->setTypeMapping();
+        $this->_classMap = $this->setTypeMapping();
         if($data){
             $this->arrayToBean($data,$autoCreateProperty);
         }
         $this->initialize();
-        $this->typeMap();
+        $this->classMap();
     }
 
     final public function allProperty():array
@@ -185,15 +185,15 @@ class SplBean implements \JsonSerializable
     {
         $this->arrayToBean($data+get_class_vars(static::class));
         $this->initialize();
-        $this->typeMap();
+        $this->classMap();
         return $this;
     }
 
-    private function typeMap()
+    private function classMap()
     {
-        if(!empty($this->_typeMap)){
+        if(!empty($this->_classMap)){
             $propertyList = $this->allProperty();
-            foreach ($this->_typeMap as $property => $class){
+            foreach ($this->_classMap as $property => $class){
                 if(in_array($property,$propertyList)){
                     $val = $this->$property;
                     $force = true;
