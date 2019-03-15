@@ -66,10 +66,33 @@ class SplArray extends \ArrayObject
         $paths = explode(".", $path);
         $data = $this->getArrayCopy();
         while ($key = array_shift($paths)){
-            if(isset($data[$key])){
-                $data = $data[$key];
+            if($key == '*'){
+                $temp = [];
+                if(is_array($data)){
+                    if(!empty($paths)){
+                        $path = implode("/",$paths);
+                    }else{
+                        $path = null;
+                    }
+                    foreach ($data as $key => $datum){
+                        if(is_array($datum)){
+                            $ctemp = (new SplArray($datum))->get($path);
+                            if($ctemp !== null){
+                                $temp[][$path] = $ctemp;
+                            }
+                        }else if($datum !== null){
+                            $temp[$key] = $datum;
+                        }
+
+                    }
+                }
+                return $temp;
             }else{
-                return null;
+                if(isset($data[$key])){
+                    $data = $data[$key];
+                }else{
+                    return null;
+                }
             }
         }
         return $data;
