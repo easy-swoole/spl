@@ -173,16 +173,16 @@ class SplBean implements \JsonSerializable
     /*
      * 恢复到属性定义的默认值
      */
-    public function restore(array $data = [])
+    public function restore(array $data = [], $autoCreateProperty = false)
     {
         $this->clear();
-        $this->arrayToBean($data+get_class_vars(static::class));
+        $this->arrayToBean($data+get_class_vars(static::class), $autoCreateProperty);
         $this->initialize();
         $this->classMap();
         return $this;
     }
 
-    function clear() {
+    private function clear() {
         $keys = $this->allProperty();
         $ref = new \ReflectionClass(static::class);
         $fields = array_keys($ref->getDefaultProperties());
@@ -233,6 +233,7 @@ class SplBean implements \JsonSerializable
      */
     private function createClass(string $class, $arg = null)
     {
+        print_r($class);
         $ref = new \ReflectionClass($class);
         return $ref->newInstance($arg);
     }
