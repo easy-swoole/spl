@@ -233,7 +233,6 @@ class SplBean implements \JsonSerializable
      */
     private function createClass(string $class, $arg = null)
     {
-        print_r($class);
         $ref = new \ReflectionClass($class);
         return $ref->newInstance($arg);
     }
