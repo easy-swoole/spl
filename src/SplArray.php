@@ -13,7 +13,6 @@ class SplArray extends \ArrayObject
 {
     function __get($name)
     {
-        // TODO: Implement __get() method.
         if (isset($this[$name])) {
             return $this[$name];
         } else {
@@ -23,13 +22,12 @@ class SplArray extends \ArrayObject
 
     function __set($name, $value): void
     {
-        // TODO: Implement __set() method.
         $this[$name] = $value;
     }
 
     function __toString(): string
     {
-        return json_encode($this, JSON_UNESCAPED_UNICODE, JSON_UNESCAPED_SLASHES);
+        return json_encode($this, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
     }
 
     function getArrayCopy(): array
