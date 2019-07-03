@@ -231,6 +231,11 @@ class SplArray extends \ArrayObject
         return $this;
     }
 
+    function merge(array $data)
+    {
+        return $this->loadArray($data + $this->getArrayCopy());
+    }
+
     /*
      $test = new \EasySwoole\Spl\SplArray([
         'title'=>'title',
