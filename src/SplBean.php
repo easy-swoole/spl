@@ -15,7 +15,7 @@ namespace EasySwoole\Spl;
 
 use EasySwoole\Spl\Exception\Exception;
 
-class SplBean implements \JsonSerializable
+class SplBean implements \JsonSerializable, \Serializable
 {
     const FILTER_NOT_NULL = 1;
     const FILTER_NOT_EMPTY = 2;
@@ -140,6 +140,22 @@ class SplBean implements \JsonSerializable
         return $data;
     }
 
+    public function serialize()
+    {
+        return $this->__toString();
+    }
+
+    public function unserialize($serialized)
+    {
+        $this->__construct(json_decode($serialized, true));
+        return $this;
+    }
+
+    public function __toString()
+    {
+        return json_encode($this->jsonSerialize(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+
     /*
      * 在子类中重写该方法，可以在类初始化的时候进行一些操作
      */
@@ -164,11 +180,6 @@ class SplBean implements \JsonSerializable
     protected function setClassMapping(): array
     {
         return [];
-    }
-
-    public function __toString()
-    {
-        return json_encode($this->jsonSerialize(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
     /*
