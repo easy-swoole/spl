@@ -164,29 +164,20 @@ class ArrayTest extends TestCase {
     /**
      * 数组值唯一
      *
-     * @depends clone testSet
      * CreateTime: 2019/9/10 下午11:55
      * @param SplArray $splArrayObj
      * @return bool
      */
-    public function testUnique(SplArray $splArrayObj) {
-
-        $splArrayObj->set('name1', 'huizhang');
-        $splArrayObj->set('name2', 'huizhang');
-        // FIXME: unique有问题(new 重新new就没问题，如果依赖testSet传递过来的$splArrayObj就会有问题)
-        $splArrayObj = $splArrayObj->unique();
-        $this->assertEquals([
-            'fruit' => [
-                'apple' => 2,
-                'orange' => 1,
-                'grape' => 4
-            ],
-            'color' => [
-                'red' => 12,
-                'blue' => 8,
-                'green' => 6
+    public function testUnique() {
+        $splArrayObj = new SplArray(
+            [
+                'name1' => 'es',
+                'name2' => 'es'
             ]
-        ], $splArrayObj->getArrayCopy());
+        );
+        $this->assertEquals(
+            ['name1'=>'es']
+        , $splArrayObj->unique()->getArrayCopy());
     }
 
     /**
@@ -194,15 +185,16 @@ class ArrayTest extends TestCase {
      *
      * @depends clone testSet
      * CreateTime: 2019/9/11 上午12:22
-     * @param SplArray $splArrayObj
      * @return bool
      */
-    public function testMultiple(SplArray $splArrayObj) {
-        $splArrayObj->set('name1', 'huizhang');
-        $splArrayObj->set('name2', 'huizhang');
-        return true;
-        // FIXME: multiple有问题(new 重新new就没问题，如果依赖testSet传递过来的$splArrayObj就会有问题)
-        $this->assertEquals(['huizhang'], $splArrayObj->multiple());
+    public function testMultiple() {
+        $splArrayObj = new SplArray(
+            [
+                'name1' => 'es',
+                'name2' => 'es'
+            ]
+        );
+        $this->assertEquals(['name2'=>'es'], $splArrayObj->multiple()->getArrayCopy());
     }
 
     /**
@@ -276,7 +268,6 @@ class ArrayTest extends TestCase {
                     'grape' => 4
                 ]
             ],
-            // TODO: 各种参数还待完善
             $splArrayObj->sort()->getArrayCopy()
         );
     }
@@ -290,7 +281,6 @@ class ArrayTest extends TestCase {
      * @return bool
      */
     public function testColumn(SplArray $splArrayObj) {
-        // FIXME: 无法获取第一层的key
         $this->assertEquals(
             [12],
             $splArrayObj->column('red')->getArrayCopy()
