@@ -3,7 +3,7 @@
  * @CreateTime:   2019/9/9 下午06:45
  * @Author:       huizhang  <tuzisir@163.com>
  * @Copyright:    copyright(2019) Easyswoole all rights reserved
- * @Description:  SplArray 单元测试
+ * @Description:  SplStream 单元测试
  */
 namespace EasySwoole\Spl\Test;
 
@@ -71,12 +71,12 @@ class StreamTest extends TestCase {
     public function testEof() {
         $stream = new SplStream('Es');
         $stream->seek(1);
-        $this->assertNotTrue(false, $stream->eof());
+        $this->assertNotTrue($stream->eof());
     }
 
     public function testIsSeekable() {
         $stream = new SplStream('Es');
-        $this->assertTrue(true, $stream->isSeekable());
+        $this->assertTrue($stream->isSeekable());
     }
 
     public function testSeek() {
@@ -104,7 +104,7 @@ class StreamTest extends TestCase {
 
     public function testIsReadable() {
         $stream = new SplStream('Es');
-        $this->assertTrue(true, $stream->isReadable());
+        $this->assertTrue($stream->isReadable());
     }
 
     public function testRead() {

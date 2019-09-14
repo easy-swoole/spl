@@ -3,7 +3,7 @@
  * @CreateTime:   2019/9/9 下午05:47
  * @Author:       huizhang  <tuzisir@163.com>
  * @Copyright:    copyright(2019) Easyswoole all rights reserved
- * @Description:  SplArray 单元测试
+ * @Description:  SplEnum 单元测试
  */
 namespace EasySwoole\Spl\Test;
 
