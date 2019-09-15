@@ -102,21 +102,25 @@ class SplArray extends \ArrayObject
     }
 
     /**
-     * 数组去重取唯一的值
+     * 数组去重取唯一的值(不支持多维)
+     *
+     * @param int $sortFlags
      * @return SplArray
      */
-    public function unique(): SplArray
+    public function unique(int $sortFlags=SORT_STRING): SplArray
     {
-        return new SplArray(array_unique($this->getArrayCopy()));
+        return new SplArray(array_unique($this->getArrayCopy(), $sortFlags));
     }
 
     /**
-     * 获取数组中重复的值
+     * 获取数组中重复的值(不支持多维)
+     *
+     * @param int $sortFlags
      * @return SplArray
      */
-    public function multiple(): SplArray
+    public function multiple(int $sortFlags=SORT_STRING): SplArray
     {
-        $unique_arr = array_unique($this->getArrayCopy());
+        $unique_arr = array_unique($this->getArrayCopy(), $sortFlags);
         return new SplArray(array_diff_assoc($this->getArrayCopy(), $unique_arr));
     }
 

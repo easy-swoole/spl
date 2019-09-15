@@ -105,7 +105,7 @@ class ArrayTest extends TestCase {
      * 销毁数组元素
      *
      * @depends clone testSet
-     * @param SplArray $splArrayObj
+     * @param $splArrayObj SplArray
      * CreateTime: 2019/9/10 下午11:44
      */
     public function testUnset(SplArray $splArrayObj) {
@@ -141,32 +141,43 @@ class ArrayTest extends TestCase {
         );
     }
 
-    public function testDelete() {
-        // TODO
+    /**
+     * 去除某个数据项(unset和delete方法其实是实现统一效果，因考虑旧版本用户使用情况，故而保留。)
+     *
+     * @depends clone testSet
+     * @param SplArray $splArrayObj
+     */
+    public function testDelete(SplArray $splArrayObj) {
+        $splArrayObj->delete('color');
+        $this->assertEquals(
+            [
+                'fruit' => [
+                    'apple' => 3,
+                    'orange' => 1,
+                    'grape' => 4
+                ]
+            ],
+            $splArrayObj->getArrayCopy()
+        );
     }
 
     /**
      * 数组值唯一
      *
-     * @depends clone testSet
      * CreateTime: 2019/9/10 下午11:55
      * @param SplArray $splArrayObj
      * @return bool
      */
-    public function testUnique(SplArray $splArrayObj) {
-
-        $splArrayObj->set('name1', 'huizhang');
-        $splArrayObj->set('name2', 'huizhang');
-        return true;
-        // FIXME: unique有问题(new 重新new就没问题，如果依赖testSet传递过来的$splArrayObj就会有问题)
-        $splArrayObj = $splArrayObj->unique();
-        $this->assertEquals([
-            'apple' => 2,
-            'orange' => 1,
-            'grape' => 2,
-            'pear' => 4,
-            'banana' => 8
-        ], $splArrayObj->getArrayCopy());
+    public function testUnique() {
+        $splArrayObj = new SplArray(
+            [
+                'name1' => 'es',
+                'name2' => 'es'
+            ]
+        );
+        $this->assertEquals(
+            ['name1'=>'es']
+        , $splArrayObj->unique()->getArrayCopy());
     }
 
     /**
@@ -174,15 +185,16 @@ class ArrayTest extends TestCase {
      *
      * @depends clone testSet
      * CreateTime: 2019/9/11 上午12:22
-     * @param SplArray $splArrayObj
      * @return bool
      */
-    public function testMultiple(SplArray $splArrayObj) {
-        $splArrayObj->set('name1', 'huizhang');
-        $splArrayObj->set('name2', 'huizhang');
-        return true;
-        // FIXME: multiple有问题(new 重新new就没问题，如果依赖testSet传递过来的$splArrayObj就会有问题)
-        $this->assertEquals(['huizhang'], $splArrayObj->multiple());
+    public function testMultiple() {
+        $splArrayObj = new SplArray(
+            [
+                'name1' => 'es',
+                'name2' => 'es'
+            ]
+        );
+        $this->assertEquals(['name2'=>'es'], $splArrayObj->multiple()->getArrayCopy());
     }
 
     /**
@@ -256,7 +268,6 @@ class ArrayTest extends TestCase {
                     'grape' => 4
                 ]
             ],
-            // TODO: 各种参数还待完善
             $splArrayObj->sort()->getArrayCopy()
         );
     }
@@ -267,41 +278,142 @@ class ArrayTest extends TestCase {
      * @depends clone testSet
      * CreateTime: 2019/9/11 上午12:35
      * @param SplArray $splArrayObj
+     * @return bool
      */
     public function testColumn(SplArray $splArrayObj) {
-        // FIXME: 无法获取第一层的key
-        return true;
         $this->assertEquals(
             [12],
             $splArrayObj->column('red')->getArrayCopy()
         );
     }
 
+    /**
+     * 交换数组中的键和值
+     */
     public function testFlip() {
-        // todo
+        $splArrayObj = new SplArray([
+            'es' => 'easyswoole'
+        ]);
+        $this->assertEquals(
+            [
+                'easyswoole' => 'es'
+            ],
+            $splArrayObj->flip()->getArrayCopy()
+        );
     }
 
+    /**
+     * 过滤数组数据
+     */
     public function testFilter() {
-        // todo
+        $splArrayObj = new SplArray(
+            [
+                'apple' => 2,
+                'orange' => 1,
+                'grape' => 2,
+                'pear' => 4,
+                'banana' => 8
+            ]
+        );
+
+        // 获取设置的键名
+        $this->assertEquals(
+            [
+                'apple' => 2,
+                'pear'  => 4
+            ],
+            $splArrayObj->filter('apple,pear', false)->getArrayCopy()
+        );
+
+        // 排除设置的键名
+        $this->assertEquals(
+            [
+                'apple' => 2,
+                'pear'  => 4
+            ],
+            $splArrayObj->filter('orange,grape,banana', true)->getArrayCopy()
+        );
     }
 
-    public function testKeys() {
-        // todo
+    /**
+     * 获取数组索引
+     *
+     * @depends clone testSet
+     * @param SplArray $splArrayObj
+     */
+    public function testKeys(SplArray $splArrayObj) {
+        $this->assertEquals(
+            ['red', 'blue', 'green'],
+            $splArrayObj->keys('color')
+        );
     }
 
-    public function testValues() {
-        // todo
+    /**
+     * 获取数组中所有的值
+     *
+     * @depends clone testSet
+     * @param SplArray $splArrayObj
+     */
+    public function testValues(SplArray $splArrayObj) {
+        $this->assertEquals(
+            [
+                [
+                    'apple' => 3,
+                    'orange' => 1,
+                    'grape' => 4
+                ],
+                [
+                    'red' => 12,
+                    'blue' => 8,
+                    'green' => 6
+                ]
+            ],
+            $splArrayObj->values()->getArrayCopy()
+        );
     }
 
-    public function testFlush() {
-        // todo
+    /**
+     * 清空数据
+     *
+     * @depends clone testSet
+     * @param SplArray $splArrayObj
+     */
+    public function testFlush(SplArray $splArrayObj) {
+        $this->assertEquals(
+            [],
+            $splArrayObj->flush()->getArrayCopy()
+        );
     }
 
-    public function testLoadArray() {
-        // todo
+    /**
+     * 重新加载数据
+     *
+     * @depends clone testSet
+     * @param SplArray $splArrayObj
+     */
+    public function testLoadArray(SplArray $splArrayObj) {
+        $this->assertEquals(
+            [
+                'name' => 'easyswoole'
+            ],
+            $splArrayObj->loadArray(
+                [
+                'name' => 'easyswoole'
+                ]
+            )->getArrayCopy()
+        );
     }
 
-    public function testToXML() {
-        // todo
+    /**
+     * 转化成xml
+     *
+     * @depends clone testSet
+     * @param SplArray $splArrayObj
+     */
+    public function testToXML(SplArray $splArrayObj) {
+        $this->assertEquals(
+            "<xml><fruit><apple>3</apple><orange>1</orange><grape>4</grape></fruit><color><red>12</red><blue>8</blue><green>6</green></color></xml>\n",
+            $splArrayObj->toXML()
+        );
     }
 }
