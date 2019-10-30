@@ -15,7 +15,7 @@ namespace EasySwoole\Spl;
 
 use EasySwoole\Spl\Exception\Exception;
 
-class SplBean implements \JsonSerializable, \Serializable
+class SplBean implements \JsonSerializable
 {
     const FILTER_NOT_NULL = 1;
     const FILTER_NOT_EMPTY = 2;
@@ -138,17 +138,6 @@ class SplBean implements \JsonSerializable, \Serializable
         unset($data['_keyMap']);
         unset($data['_classMap']);
         return $data;
-    }
-
-    public function serialize()
-    {
-        return $this->__toString();
-    }
-
-    public function unserialize($serialized)
-    {
-        $this->__construct(json_decode($serialized, true));
-        return $this;
     }
 
     public function __toString()
