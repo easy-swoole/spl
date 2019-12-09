@@ -35,8 +35,15 @@ class SplBean implements \JsonSerializable
     final public function allProperty(): array
     {
         $data = [];
-        foreach ($this as $key => $item) {
-            array_push($data, $key);
+        $class = new \ReflectionClass($this);
+        $protectedAndPublic = $class->getProperties(
+            \ReflectionProperty::IS_PUBLIC | \ReflectionProperty::IS_PROTECTED
+        );
+        foreach ($protectedAndPublic as $item) {
+            if ($item->isStatic()) {
+                continue;
+            }
+            array_push($data, $item->getName());
         }
         $data = array_flip($data);
         unset($data['_keyMap']);
