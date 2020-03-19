@@ -11,6 +11,8 @@ class SplContextArray implements \ArrayAccess,\Countable ,\JsonSerializable ,\It
 
     private $data = [];
     private $autoClear = false;
+    private $onContextCreate;
+    private $onContextDestroy;
 
     function __construct(bool $autoClear = true)
     {
@@ -60,6 +62,9 @@ class SplContextArray implements \ArrayAccess,\Countable ,\JsonSerializable ,\It
         if($cid === null){
             $cid = Coroutine::getCid();
         }
+        if($this->onContextDestroy){
+            call_user_func($this->onContextDestroy,$this);
+        }
         unset($this->data[$cid]);
     }
 
@@ -78,11 +83,26 @@ class SplContextArray implements \ArrayAccess,\Countable ,\JsonSerializable ,\It
         $this->data[$this->cid()] = $array;
     }
 
+    public function setOnContextCreate(callable $call)
+    {
+        $this->onContextCreate = $call;
+        return $this;
+    }
+
+    public function setOnContextDestroy(callable $call)
+    {
+        $this->onContextDestroy = $call;
+        return $this;
+    }
+
     private function cid():int
     {
         $cid = Coroutine::getCid();
         if(!isset($this->data[$cid])){
             $this->data[$cid] = [];
+            if($this->onContextCreate){
+                call_user_func($this->onContextCreate,$this);
+            }
             if($this->autoClear && $cid > 0){
                 defer(function ()use($cid){
                     $this->destroy($cid);
