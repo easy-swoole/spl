@@ -68,6 +68,15 @@ class SplContextArray implements \ArrayAccess,\Countable ,\JsonSerializable ,\It
         return $this->data[$this->cid()];
     }
 
+    public function toArray():array
+    {
+        return $this->data[$this->cid()];
+    }
+
+    public function loadArray(array $array)
+    {
+        $this->data[$this->cid()] = $array;
+    }
 
     private function cid():int
     {

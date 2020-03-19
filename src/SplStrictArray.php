@@ -4,12 +4,11 @@
 namespace EasySwoole\Spl;
 
 
-class StrictArray implements \ArrayAccess ,\Countable ,\Iterator
+class SplStrictArray implements \ArrayAccess ,\Countable ,\IteratorAggregate
 {
     private $class;
     private $data = [];
-    private $currentKey;
-    private $keys = [];
+
 
     function __construct(string $itemClass)
     {
@@ -54,34 +53,8 @@ class StrictArray implements \ArrayAccess ,\Countable ,\Iterator
         return count($this->data);
     }
 
-    public function current()
+    public function getIterator()
     {
-        return $this->data[$this->currentKey];
-    }
-
-    public function next()
-    {
-        $this->currentKey = array_shift($this->keys);
-    }
-
-    public function key()
-    {
-        if($this->currentKey === null){
-            $this->rewind();
-        }
-        return $this->currentKey;
-    }
-
-    public function valid()
-    {
-        return isset($this->data[$this->currentKey]);
-    }
-
-    public function rewind()
-    {
-        $this->currentKey = null;
-        $this->keys = [];
-        $this->keys = array_keys($this->data);
-        $this->currentKey = array_shift($this->keys);
+        return new \ArrayIterator($this->data);
     }
 }
