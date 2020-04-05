@@ -256,7 +256,7 @@ class SplArray extends \ArrayObject
         ]
     ]);
      */
-    public function toXML($CD_DATA = false, $rootName = 'xml', $encoding = 'UTF-8')
+    public function toXML($CD_DATA = false, $rootName = 'xml', $encoding = 'UTF-8', $item = 'item')
     {
         $data = $this->getArrayCopy();
         if ($CD_DATA) {
@@ -275,13 +275,13 @@ class SplArray extends \ArrayObject
         } else {
             $xml = new \SimpleXMLElement('<?xml version="1.0" encoding="' . $encoding . '" ?>' . "<{$rootName} ></{$rootName}>");
         }
-        $parser = function ($xml, $data) use (&$parser, $CD_DATA) {
+        $parser = function ($xml, $data) use (&$parser, $CD_DATA, $item) {
             foreach ($data as $k => $v) {
                 if (is_array($v)) {
                     if (!is_numeric($k)) {
                         $ch = $xml->addChild($k);
                     } else {
-                        $ch = $xml->addChild(substr($xml->getName(), 0, -1));
+                        $ch = $xml->addChild($item);
                     }
                     $parser($ch, $v);
                 } else {
