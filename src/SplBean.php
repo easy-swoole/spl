@@ -190,6 +190,12 @@ class SplBean implements \JsonSerializable
         return $this;
     }
 
+    function merge(array $data)
+    {
+        $this->arrayToBean($data);
+        return $this;
+    }
+
     private function clear()
     {
         $keys = $this->allProperty();
