@@ -134,9 +134,9 @@ class SplArray extends \ArrayObject
      * 按照键值升序
      * @return SplArray
      */
-    public function asort(): SplArray
+    public function asort($flags = SORT_REGULAR): SplArray
     {
-        parent::asort();
+        parent::asort($flags);
         return $this;
     }
 
@@ -144,9 +144,9 @@ class SplArray extends \ArrayObject
      * 按照键升序
      * @return SplArray
      */
-    public function ksort(): SplArray
+    public function ksort($flags = SORT_REGULAR): SplArray
     {
-        parent::ksort();
+        parent::ksort($flags);
         return $this;
     }
 
