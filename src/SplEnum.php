@@ -60,7 +60,7 @@ class SplEnum
         return self::getConstants();
     }
 
-    private final static function getConstants():array
+    private static function getConstants():array
     {
         try{
             return (new \ReflectionClass(static::class))->getConstants();
