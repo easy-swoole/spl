@@ -416,4 +416,43 @@ class ArrayTest extends TestCase {
             $splArrayObj->toXML()
         );
     }
+
+    public function testMulti()
+    {
+        $splArray = new SplArray(
+            [
+                'a'=>[
+                    "sum"=>'a1',
+                    [
+                        "sum"=>'s1',
+                    ],
+                    [
+                        "sum"=>'s2',
+                    ],
+                ],
+                'b'=>'b',
+                'c'=>[
+                    "sum"=>'c1'
+                ],
+            ]
+        );
+
+        $this->assertEquals([
+            null,'s1','s2'
+        ],$splArray->get('a.*.sum'));
+
+        $this->assertEquals([
+            'a1',null,'c1'
+        ],$splArray->get('*.sum'));
+
+        $this->assertEquals([
+            'a1',
+            [
+                "sum"=>'s1',
+            ],
+            [
+                "sum"=>'s2',
+            ],
+        ],$splArray->get('a.*'));
+    }
 }
