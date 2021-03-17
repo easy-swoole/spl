@@ -14,8 +14,11 @@ use PHPUnit\Framework\TestCase;
 class StreamTest extends TestCase {
 
     public function testConstruct() {
-        $resource = fopen('./test.txt', 'ab+');
+        $resource = fopen(getcwd().'/tmp.txt', 'a+');
         $stream = new SplStream($resource);
+        $stream->truncate();
+        $stream->seek(0);
+        $stream->write('Easyswoole');
         $this->assertEquals(
             'Easyswoole',
             $stream->__toString()
@@ -44,7 +47,7 @@ class StreamTest extends TestCase {
     }
 
     public function testClose() {
-        $resource = fopen('./test.txt', 'ab+');
+        $resource = fopen(getcwd().'/tmp.txt', 'ab+');
         $stream = new SplStream($resource);
         $stream->close();
         $this->assertEquals('', $stream->__toString());
@@ -108,8 +111,12 @@ class StreamTest extends TestCase {
     }
 
     public function testRead() {
-        $resource = fopen('./test.txt', 'rb');
+        $resource = fopen(getcwd().'/tmp.txt', 'a+');
         $stream = new SplStream($resource);
+        $stream->truncate();
+        $stream->seek(0);
+        $stream->write('Es');
+        $stream->seek(0);
         $this->assertEquals('E', $stream->read(1));
     }
 

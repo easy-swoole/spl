@@ -59,41 +59,33 @@ class SplArray extends \ArrayObject
         }
     }
 
-    function get($path)
+    function get($key = null, $default = null,$target = null)
     {
-        $paths = explode(".", $path);
-        $data = $this->getArrayCopy();
-        while ($key = array_shift($paths)) {
-            if (isset($data[$key])) {
-                $data = $data[$key];
+        if($target == null){
+            $target = $this->getArrayCopy();
+        }
+        if (is_null($key)) {
+            return $target;
+        }
+        $key = is_array($key) ? $key : explode('.', is_int($key) ? (string)$key : $key);
+        while (!is_null($segment = array_shift($key))) {
+            if ((is_array($target) || $target instanceof \Traversable )&& isset($target[$segment])) {
+                $target = $target[$segment];
+            } elseif (is_object($target) && isset($target->{$segment})) {
+                $target = $target->{$segment};
             } else {
-                if ($key == '*') {
-                    $temp = [];
-                    if (is_array($data)) {
-                        if (!empty($paths)) {
-                            $path = implode("/", $paths);
-                        } else {
-                            $path = null;
-                        }
-                        foreach ($data as $key => $datum) {
-                            if (is_array($datum)) {
-                                $ctemp = (new SplArray($datum))->get($path);
-                                if ($ctemp !== null) {
-                                    $temp[][$path] = $ctemp;
-                                }
-                            } else if ($datum !== null) {
-                                $temp[$key] = $datum;
-                            }
-
-                        }
+                if ($segment === '*') {
+                    $data = [];
+                    foreach ($target as $item) {
+                        $data[] = self::get($key, $default,$item);
                     }
-                    return $temp;
+                    return $data;
                 } else {
-                    return null;
+                    return $default;
                 }
             }
         }
-        return $data;
+        return $target;
     }
 
     public function delete($key): void
