@@ -205,6 +205,7 @@ class ArrayTest extends TestCase {
      * @param SplArray $splArrayObj
      */
     public function testAsort(SplArray $splArrayObj) {
+       $splArrayObj->asort();
         $this->assertEquals(
             [
                 'color' => [
@@ -218,7 +219,7 @@ class ArrayTest extends TestCase {
                     'grape' => 4
                 ]
             ]
-            ,$splArrayObj->asort()->getArrayCopy()
+            ,$splArrayObj->getArrayCopy()
         );
     }
 
@@ -230,6 +231,7 @@ class ArrayTest extends TestCase {
      * @param SplArray $splArrayObj
      */
     public function testKsort(SplArray $splArrayObj) {
+        $splArrayObj->ksort();
         $this->assertEquals(
             [
                 'color' => [
@@ -243,7 +245,7 @@ class ArrayTest extends TestCase {
                     'grape' => 4
                 ]
             ],
-            $splArrayObj->ksort()->getArrayCopy()
+           $splArrayObj->getArrayCopy()
         );
     }
 

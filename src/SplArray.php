@@ -122,24 +122,16 @@ class SplArray extends \ArrayObject
         }));
     }
 
-    /**
-     * 按照键值升序
-     * @return SplArray
-     */
-    public function asort($flags = SORT_REGULAR): SplArray
+
+    public function asort($flags = SORT_REGULAR): bool
     {
-        parent::asort($flags);
-        return $this;
+        return parent::asort($flags);
     }
 
-    /**
-     * 按照键升序
-     * @return SplArray
-     */
-    public function ksort($flags = SORT_REGULAR): SplArray
+
+    public function ksort($flags = SORT_REGULAR): bool
     {
-        parent::ksort($flags);
-        return $this;
+        return parent::ksort($flags);
     }
 
     /**
