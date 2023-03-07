@@ -67,6 +67,13 @@ class SplBean implements \JsonSerializable
                 }else{
                     if($property->getDefaultValue() !== null){
                         $this->{$property->name} = $property->getDefaultValue();
+                    }else{
+                        $types = $property->getType();
+                        if($types){
+                            if($types->allowsNull()){
+                                $this->{$property->name} = null;
+                            }
+                        }
                     }
                     $this->properties[$property->name] = $property->getDefaultValue();
                 }
