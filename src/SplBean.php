@@ -48,7 +48,7 @@ class SplBean implements \JsonSerializable
                 foreach ($all as $sub){
                     $name = $sub->getName();
                     $ref = new \ReflectionClass($name);
-                    if($ref->isSubclassOf(ConvertBean::class)){
+                    if($ref->isSubclassOf(ConvertBean::class) || ($name == ConvertBean::class)){
                         $convertBean = new $name(...$sub->getArguments());
                     }
                 }
