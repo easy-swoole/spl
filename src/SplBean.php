@@ -43,9 +43,16 @@ class SplBean implements \JsonSerializable
                 if ($property->isStatic()) {
                     continue;
                 }
-                $convertBean = $property->getAttributes(ConvertBean::class);
+                $convertBean = null;
+                $all = $property->getAttributes();
+                foreach ($all as $sub){
+                    $name = $sub->getName();
+                    $ref = new \ReflectionClass($name);
+                    if($ref->isSubclassOf(ConvertBean::class)){
+                        $convertBean = new $name(...$sub->getArguments());
+                    }
+                }
                 if($convertBean){
-                    $convertBean = new ConvertBean(...$convertBean[0]->getArguments());
                     $types = $property->getType();
                     if($types){
                         $convertBean->setAllowNull($types->allowsNull());
