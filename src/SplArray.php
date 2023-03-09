@@ -240,14 +240,14 @@ class SplArray extends \ArrayObject
         ]
     ]);
      */
-    public function toXML($CD_DATA = false, $rootName = 'xml', $encoding = 'UTF-8', $item = 'item')
+    public function toXML($CD_DATA = false, $rootName = 'xml', $subArrayItemKey = 'item')
     {
         $data = $this->getArrayCopy();
         if ($CD_DATA) {
             /*
              * 默认制定
              */
-            $xml = new class('<?xml version="1.0" encoding="' . $encoding . '" ?>' . "<{$rootName}></{$rootName}>") extends \SimpleXMLElement
+            $xml = new class("<{$rootName}></{$rootName}>") extends \SimpleXMLElement
             {
                 public function addCData($cdata_text)
                 {
@@ -257,15 +257,15 @@ class SplArray extends \ArrayObject
                 }
             };
         } else {
-            $xml = new \SimpleXMLElement('<?xml version="1.0" encoding="' . $encoding . '" ?>' . "<{$rootName} ></{$rootName}>");
+            $xml = new \SimpleXMLElement( "<{$rootName} ></{$rootName}>");
         }
-        $parser = function ($xml, $data) use (&$parser, $CD_DATA, $item) {
+        $parser = function ($xml, $data) use (&$parser, $CD_DATA, $subArrayItemKey) {
             foreach ($data as $k => $v) {
                 if (is_array($v)) {
                     if (!is_numeric($k)) {
                         $ch = $xml->addChild($k);
                     } else {
-                        $ch = $xml->addChild($item);
+                        $ch = $xml->addChild($subArrayItemKey);
                     }
                     $parser($ch, $v);
                 } else {
