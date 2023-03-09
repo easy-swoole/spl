@@ -117,7 +117,7 @@ class SplBean implements \JsonSerializable
         }
     }
 
-    final public function jsonSerialize(): array
+    public function jsonSerialize(): array
     {
         $data = [];
         foreach ($this->properties as $key => $property){
