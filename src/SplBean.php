@@ -121,11 +121,18 @@ class SplBean implements \JsonSerializable
     {
         $data = [];
         foreach ($this->properties as $key => $property){
-            if($this->{$key} instanceof SplBean){
-                $data[$key] = $this->{$key}->jsonSerialize();
+            $temp = new \ReflectionProperty(static::class,$key);
+            if($temp->isInitialized($this)){
+                if($this->{$key} instanceof SplBean){
+                    $data[$key] = $this->{$key}->jsonSerialize();
+                }else{
+                    $data[$key] = $this->{$key};
+                }
             }else{
-                $data[$key] = $this->{$key};
+                $data[$key] = null;
             }
+
+
         }
         return $data;
     }
