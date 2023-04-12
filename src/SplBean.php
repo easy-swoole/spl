@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: yf
- * Date: 2018/5/22
- * Time: 下午2:53
- */
 
 namespace EasySwoole\Spl;
 
@@ -20,6 +14,8 @@ class SplBean implements \JsonSerializable
     const FILTER_EMPTY = 4;
 
     private array|null $properties = null;
+
+    private array $converMap = [];
 
 
     public function __construct(?array $data = null)
@@ -64,6 +60,7 @@ class SplBean implements \JsonSerializable
                         $this->{$property->name} = null;
                     }
                     $this->properties[$property->name] = new $class();
+                    $this->converMap[$property->name] = $convertBean;
                 }else{
                     if($property->getDefaultValue() !== null){
                         $this->{$property->name} = $property->getDefaultValue();
@@ -149,26 +146,28 @@ class SplBean implements \JsonSerializable
 
     public function restore(array $data = [])
     {
-        foreach ($this->properties as $key => $val){
+        foreach ($this->properties as $key => $property){
             if(key_exists($key,$data)){
-                if($val instanceof SplBean){
-                    $class = $val::class;
+                if(isset($this->converMap[$key])){
+                    /** @var ConvertBean $convert */
+                    $convert = $this->converMap[$key];
+                    $class = $convert->className;
                     $val = $data[$key];
                     if(is_array($val)){
-                        $class = new $class($val);
-                        $this->{$key} = $class;
+                        $this->{$key} = new $class($val);
                     }else if(is_string($val)){
                         $arr = json_decode($val,true);
                         if(is_array($arr)){
-                            $class = new $class($val);
-                            $this->{$key} = $class;
+                            $this->{$key} = new $class($val);
                         }else{
                             throw new \Exception("data for property {$key} at class {$class} not a json format");
                         }
-                    }elseif(is_object($val) && ($val::class == $class)){
+                    }elseif(is_object($val) && ($val instanceof $class)){
                         $this->{$key} = $val;
                     }else{
-                        throw new \Exception("data for property {$key} at class {$class} not a json format");
+                        if(!empty($val) && (!$convert->isAllowNull())){
+                            throw new \Exception("data for property {$key} at class {$class} not a json format");
+                        }
                     }
                 }else{
                     $this->{$key} = $data[$key];
