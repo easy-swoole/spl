@@ -123,12 +123,13 @@ class SplArray extends \ArrayObject
     }
 
 
+    #[\ReturnTypeWillChange]
     public function asort($flags = SORT_REGULAR): bool
     {
         return parent::asort($flags);
     }
 
-
+    #[\ReturnTypeWillChange]
     public function ksort($flags = SORT_REGULAR): bool
     {
         return parent::ksort($flags);
