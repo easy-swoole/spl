@@ -253,7 +253,7 @@ class SplArray extends \ArrayObject
                 public function addCData($cdata_text)
                 {
                     $dom = dom_import_simplexml($this);
-                    $cdata = $dom->ownerDocument->createCDATASection($cdata_text);
+                    $cdata = $dom->ownerDocument->createCDATASection((string)$cdata_text);
                     $dom->appendChild($cdata);
                 }
             };

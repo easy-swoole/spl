@@ -419,6 +419,31 @@ class ArrayTest extends TestCase {
         );
     }
 
+    /**
+     * 转化成xml
+     */
+    public function testToXML2()
+    {
+        $data = [
+            'fruit' => [
+                'apple' => 2,
+                'orange' => 1,
+                'grape' => 4,
+                'foo' => null,
+            ],
+            'color' => [
+                'red' => 12,
+                'blue' => 8,
+                'green' => 6
+            ]
+        ];
+        $splArrayObj = new SplArray($data);
+        $this->assertEquals(
+            "<xml><fruit><apple><![CDATA[2]]></apple><orange><![CDATA[1]]></orange><grape><![CDATA[4]]></grape><foo><![CDATA[]]></foo></fruit><color><red><![CDATA[12]]></red><blue><![CDATA[8]]></blue><green><![CDATA[6]]></green></color></xml>\n",
+            $splArrayObj->toXML(true)
+        );
+    }
+
     public function testMulti()
     {
         $splArray = new SplArray(
