@@ -15,19 +15,19 @@ class SplBean implements \JsonSerializable
 
     private array|null $properties = null;
 
-    private array $converMap = [];
+    private array $convertMap = [];
 
 
     public function __construct(?array $data = null)
     {
-        $this->allProperty();
+        $this->allProperty($data);
         if($data){
             $this->restore($data);
         }
         $this->initialize();
     }
 
-    final public function allProperty(): array
+    final public function allProperty(?array $data = null): array
     {
         if($this->properties == null){
             $this->properties = [];
@@ -48,19 +48,22 @@ class SplBean implements \JsonSerializable
                         $convertBean = new $name(...$sub->getArguments());
                     }
                 }
+                /**
+                 *@var ConvertBean $convertBean
+                 */
                 if($convertBean){
                     $types = $property->getType();
                     if($types){
                         $convertBean->setAllowNull($types->allowsNull());
                     }
-                    $class = $convertBean->className;
-                    if(!$convertBean->isAllowNull()){
-                        $this->{$property->name} = new $class($property->getDefaultValue());
-                    }else{
+                    if($convertBean->isAllowNull() && empty($data[$property->getName()])){
                         $this->{$property->name} = null;
+                    }else if((!$convertBean->isAllowNull()) && !isset($data[$property->getName()])){
+                        throw new \Exception("data for property {$property->getName()} at class ".static::class." cannot be null");
                     }
-                    $this->properties[$property->name] = new $class();
-                    $this->converMap[$property->name] = $convertBean;
+
+                    $this->properties[$property->name] = true;
+                    $this->convertMap[$property->name] = $convertBean;
                 }else{
                     if($property->getDefaultValue() !== null){
                         $this->{$property->name} = $property->getDefaultValue();
@@ -72,7 +75,7 @@ class SplBean implements \JsonSerializable
                             }
                         }
                     }
-                    $this->properties[$property->name] = $property->getDefaultValue();
+                    $this->properties[$property->name] = true;
                 }
             }
         }
@@ -148,9 +151,9 @@ class SplBean implements \JsonSerializable
     {
         foreach ($this->properties as $key => $property){
             if(key_exists($key,$data)){
-                if(isset($this->converMap[$key])){
+                if(isset($this->convertMap[$key])){
                     /** @var ConvertBean $convert */
-                    $convert = $this->converMap[$key];
+                    $convert = $this->convertMap[$key];
                     $class = $convert->className;
                     $val = $data[$key];
                     if(is_array($val)){
