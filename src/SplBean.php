@@ -161,7 +161,7 @@ class SplBean implements \JsonSerializable
                     }else if(is_string($val)){
                         $arr = json_decode($val,true);
                         if(is_array($arr)){
-                            $this->{$key} = new $class($val);
+                            $this->{$key} = new $class($arr);
                         }else{
                             throw new \Exception("data for property {$key} at class {$class} not a json format");
                         }
