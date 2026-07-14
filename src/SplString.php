@@ -12,7 +12,7 @@ namespace EasySwoole\Spl;
 class SplString extends SplStream
 {
 
-    function __construct( string $str = null )
+    function __construct( string|null $str = null )
     {
         parent::__construct( $str );
     }
@@ -117,7 +117,7 @@ class SplString extends SplStream
         return $this->setString( trim( $this->__toString(), $charList ) );
     }
 
-    function pad( int $length, string $padString = null, int $pad_type = STR_PAD_RIGHT ) : SplString
+    function pad( int $length, string|null $padString = null, int $pad_type = STR_PAD_RIGHT ) : SplString
     {
         return $this->setString( str_pad( $this->__toString(), $length, $padString, $pad_type ) );
     }
@@ -142,7 +142,7 @@ class SplString extends SplStream
         return $this->setString( strtolower( $this->__toString() ) );
     }
 
-    function stripTags( string $allowable_tags = null ) : SplString
+    function stripTags( string|null $allowable_tags = null ) : SplString
     {
         return $this->setString( strip_tags( $this->__toString(), $allowable_tags ) );
     }

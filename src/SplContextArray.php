@@ -57,7 +57,7 @@ class SplContextArray implements \ArrayAccess,\Countable ,\JsonSerializable ,\It
     }
 
 
-    function destroy(int $cid = null)
+    function destroy(int|null $cid = null)
     {
         if($cid === null){
             $cid = Coroutine::getCid();

@@ -27,7 +27,7 @@ class SplBean implements \JsonSerializable
         $this->initialize();
     }
 
-    final public function allProperty(?array $data = null): array
+    final public function allProperty(array|null $data = null): array
     {
         if($this->properties == null){
             $this->properties = [];
