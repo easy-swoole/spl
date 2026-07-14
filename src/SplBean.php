@@ -83,7 +83,7 @@ class SplBean implements \JsonSerializable
         return array_keys($this->properties);
     }
 
-    function toArray(int|callable $filter = null): array
+    function toArray(int|callable|null $filter = null): array
     {
         $data = $this->jsonSerialize();
         if ($filter === self::FILTER_NOT_NULL) {
