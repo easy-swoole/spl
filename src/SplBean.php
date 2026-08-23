@@ -46,6 +46,7 @@ class SplBean implements \JsonSerializable
                     $ref = new \ReflectionClass($name);
                     if($ref->isSubclassOf(ConvertBean::class) || ($name == ConvertBean::class)){
                         $convertBean = new $name(...$sub->getArguments());
+                        break;
                     }
                 }
                 /**
@@ -54,14 +55,23 @@ class SplBean implements \JsonSerializable
                 if($convertBean){
                     $types = $property->getType();
                     if($types){
-                        $convertBean->setAllowNull($types->allowsNull());
+                        $convertBean->allowNull = $types->allowsNull();
                     }
-                    if($convertBean->isAllowNull() && empty($data[$property->getName()])){
-                        $this->{$property->name} = null;
-                    }else if((!$convertBean->isAllowNull()) && !isset($data[$property->getName()])){
-                        throw new \Exception("data for property {$property->getName()} at class ".static::class." cannot be null");
+                    if(!isset($data[$property->getName()])){
+                        if($convertBean->allowNull){
+                            $this->{$property->name} = null;
+                        }else{
+                            if(!$convertBean->createObjectWhenNull){
+                                throw new \Exception("data for property {$property->getName()} at class ".static::class." cannot be null");
+                            }else{
+                                if($convertBean->iscConvert2SplBean){
+                                    $this->{$property->name} = new $convertBean->className;
+                                }else{
+                                    $this->{$property->name} = call_user_func([$convertBean->className,'toObject'],null);
+                                }
+                            }
+                        }
                     }
-
                     $this->properties[$property->name] = true;
                     $this->convertMap[$property->name] = $convertBean;
                 }else{
@@ -85,7 +95,28 @@ class SplBean implements \JsonSerializable
 
     function toArray(int|callable|null $filter = null): array
     {
-        $data = $this->jsonSerialize();
+        $data = [];
+        foreach ($this->properties as $key => $property){
+            $temp = new \ReflectionProperty(static::class,$key);
+            if($temp->isInitialized($this)){
+                if(is_object($this->{$key})){
+                    if($this->{$key} instanceof SplBean){
+                        $data[$key] = $this->{$key}->jsonSerialize();
+                    }else{
+                        if(method_exists($this->{$key},'toValue')){
+                            $data[$key] = $this->{$key}->toValue();
+                        }else{
+                            $data[$key] = $this->{$key};
+                        }
+                    }
+                }else{
+                    $data[$key] = $this->{$key};
+                }
+
+            }else{
+                $data[$key] = null;
+            }
+        }
         if ($filter === self::FILTER_NOT_NULL) {
             return array_filter($data, function ($val) {
                 return !is_null($val);
@@ -119,22 +150,7 @@ class SplBean implements \JsonSerializable
 
     public function jsonSerialize(): array
     {
-        $data = [];
-        foreach ($this->properties as $key => $property){
-            $temp = new \ReflectionProperty(static::class,$key);
-            if($temp->isInitialized($this)){
-                if($this->{$key} instanceof SplBean){
-                    $data[$key] = $this->{$key}->jsonSerialize();
-                }else{
-                    $data[$key] = $this->{$key};
-                }
-            }else{
-                $data[$key] = null;
-            }
-
-
-        }
-        return $data;
+        return $this->toArray();
     }
 
     public function __toString()
@@ -156,20 +172,28 @@ class SplBean implements \JsonSerializable
                     $convert = $this->convertMap[$key];
                     $class = $convert->className;
                     $val = $data[$key];
-                    if(is_array($val)){
-                        $this->{$key} = new $class($val);
-                    }else if(is_string($val)){
-                        $arr = json_decode($val,true);
-                        if(is_array($arr)){
-                            $this->{$key} = new $class($arr);
+                    if($convert->iscConvert2SplBean){
+                        if(is_array($val)){
+                            $this->{$key} = new $class($val);
+                        }else if(is_string($val)){
+                            $arr = json_decode($val,true);
+                            if(is_array($arr)){
+                                $this->{$key} = new $class($arr);
+                            }else{
+                                throw new \Exception("data for property {$key} at class {$class} not a json format");
+                            }
+                        }elseif(is_object($val) && ($val instanceof $class)){
+                            $this->{$key} = $val;
                         }else{
-                            throw new \Exception("data for property {$key} at class {$class} not a json format");
+                            if(!empty($val) && (!$convert->allowNull)){
+                                throw new \Exception("data for property {$key} at class {$class} not a json format");
+                            }
                         }
-                    }elseif(is_object($val) && ($val instanceof $class)){
-                        $this->{$key} = $val;
                     }else{
-                        if(!empty($val) && (!$convert->isAllowNull())){
-                            throw new \Exception("data for property {$key} at class {$class} not a json format");
+                        if($val instanceof $class){
+                            $this->{$key} = $val;
+                        }else{
+                            $this->{$key} = call_user_func([$convert->className,'toObject'], $val);
                         }
                     }
                 }else{
