@@ -3,6 +3,7 @@
 namespace EasySwoole\Spl\Attribute;
 
 
+use EasySwoole\Spl\AbstractInterface\ConvertBeanInterface;
 use EasySwoole\Spl\SplBean;
 
 #[\Attribute(\Attribute::TARGET_PROPERTY)]
@@ -18,13 +19,8 @@ class ConvertBean
     ){
         $ref = new \ReflectionClass($this->className);
         if(!$ref->isSubclassOf(SplBean::class)){
-            $toObject = $ref->getMethod('toObject');
-            if(!$toObject->isStatic()){
-                throw new \Exception("{$this->className} toObject() method must be static");
-            }
-            $toValue = $ref->getMethod('toValue');
-            if((!$toObject) || (!$toValue)){
-                throw new \Exception("{$this->className} not subclass of ".SplBean::class .' or not has toObject and toValue method');
+            if(!$ref->isSubclassOf(ConvertBeanInterface::class)){
+                throw new \Exception("{$this->className} not subclass of ".SplBean::class .' or '.(ConvertBeanInterface::class));
             }
             $this->iscConvert2SplBean = false;
         }else{
