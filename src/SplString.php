@@ -12,7 +12,7 @@ namespace EasySwoole\Spl;
 class SplString extends SplStream
 {
 
-    function __construct( string|null $str = null )
+    public function __construct(?string $str = null)
     {
         parent::__construct( $str );
     }
@@ -40,7 +40,7 @@ class SplString extends SplStream
         return $this->setString( substr( $this->__toString(), $start, $length ) );
     }
 
-    function encodingConvert( string $desEncoding, $detectList
+    public function encodingConvert(string $desEncoding, array|string|null $detectList
     = [
         'UTF-8',
         'ASCII',
@@ -51,7 +51,10 @@ class SplString extends SplStream
         "UCS-2",
     ] ) : SplString
     {
-        $fileType = mb_detect_encoding( $this->__toString(), $detectList );
+        $fileType = mb_detect_encoding($this->__toString(), $detectList, true);
+        if ($fileType === false) {
+            throw new \RuntimeException('Unable to detect string encoding');
+        }
         if( $fileType != $desEncoding ){
             $this->setString( mb_convert_encoding( $this->__toString(), $desEncoding, $fileType ) );
         }
@@ -117,9 +120,9 @@ class SplString extends SplStream
         return $this->setString( trim( $this->__toString(), $charList ) );
     }
 
-    function pad( int $length, string|null $padString = null, int $pad_type = STR_PAD_RIGHT ) : SplString
+    function pad( int $length, ?string $padString = null, int $pad_type = STR_PAD_RIGHT ) : SplString
     {
-        return $this->setString( str_pad( $this->__toString(), $length, $padString, $pad_type ) );
+        return $this->setString(str_pad($this->__toString(), $length, $padString ?? ' ', $pad_type));
     }
 
     function repeat( int $times ) : SplString
@@ -142,7 +145,7 @@ class SplString extends SplStream
         return $this->setString( strtolower( $this->__toString() ) );
     }
 
-    function stripTags( string|null $allowable_tags = null ) : SplString
+    function stripTags(array|string|null $allowable_tags = null): SplString
     {
         return $this->setString( strip_tags( $this->__toString(), $allowable_tags ) );
     }
@@ -163,7 +166,7 @@ class SplString extends SplStream
         }
     }
 
-    public function regex( $regex, bool $rawReturn = false )
+    public function regex(string $regex, bool $rawReturn = false): array|string|null
     {
         preg_match( $regex, $this->__toString(), $result );
         if( !empty( $result ) ){
@@ -204,9 +207,8 @@ class SplString extends SplStream
         $string = $this->__toString();
         if( !ctype_lower( $string ) ){
             $string = preg_replace( '/\s+/u', '', ucwords( $this->__toString() ) );
-            $string = $this->setString( preg_replace( '/(.)(?=[A-Z])/u', '$1'.$delimiter, $string ) );
-            $this->setString( $string );
-            $this->lower();
+            $string = preg_replace('/(.)(?=[A-Z])/u', '$1'.$delimiter, $string);
+            $this->setString($string ?? '')->lower();
         }
         return $this;
     }
@@ -327,10 +329,11 @@ class SplString extends SplStream
      * @param  string|array $needles
      * @return bool
      */
-    public function endsWith( $needles ) : bool
+    public function endsWith(string|array $needles): bool
     {
-        foreach( (array)$needles as $needle ){
-            if( substr( $this->__toString(), - strlen( $needle ) ) === (string)$needle ){
+        foreach ((array)$needles as $needle) {
+            $needle = (string)$needle;
+            if (substr($this->__toString(), -strlen($needle)) === $needle) {
                 return true;
             }
         }
@@ -344,10 +347,11 @@ class SplString extends SplStream
      * @param  string|array $needles
      * @return bool
      */
-    public function startsWith( $needles ) : bool
+    public function startsWith(string|array $needles): bool
     {
-        foreach( (array)$needles as $needle ){
-            if( $needle !== '' && substr( $this->__toString(), 0, strlen( $needle ) ) === (string)$needle ){
+        foreach ((array)$needles as $needle) {
+            $needle = (string)$needle;
+            if ($needle !== '' && substr($this->__toString(), 0, strlen($needle)) === $needle) {
                 return true;
             }
         }

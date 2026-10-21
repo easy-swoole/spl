@@ -18,8 +18,11 @@
     "ext-simplexml": "*"
   },
   "require-dev": {
-    "easyswoole/phpunit": "^1.0",
-    "easyswoole/swoole-ide-helper": "^1.0"
+    "easyswoole/swoole-ide-helper": "^1.0",
+    "phpunit/phpunit": "^10.5"
+  },
+  "scripts": {
+    "test": "phpunit"
   },
   "autoload": {
     "psr-4": {

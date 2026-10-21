@@ -12,6 +12,14 @@ use PHPUnit\Framework\TestCase;
 
 class FileStreamTest extends TestCase {
 
+    protected function tearDown(): void
+    {
+        $file = getcwd() . '/test.txt';
+        if (is_file($file)) {
+            unlink($file);
+        }
+    }
+
     public function testConstruct() {
         $fileStream = new SplFileStream('./test.txt');
         $this->assertEquals('STDIO', $fileStream->getMetadata('stream_type'));
@@ -25,5 +33,17 @@ class FileStreamTest extends TestCase {
     public function testUnlock() {
         $fileStream = new SplFileStream('./test.txt');
         $this->assertTrue($fileStream->unlock());
+    }
+
+    public function testOpenFailureThrowsInsteadOfCreatingMemoryStream(): void
+    {
+        $this->expectException(\RuntimeException::class);
+        new SplFileStream('/path/that/does/not/exist/file.txt', 'r');
+    }
+
+    public function testInvalidModeThrowsInvalidArgumentException(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        new SplFileStream('./test.txt', 'invalid');
     }
 }

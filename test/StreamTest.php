@@ -13,6 +13,14 @@ use PHPUnit\Framework\TestCase;
 
 class StreamTest extends TestCase {
 
+    protected function tearDown(): void
+    {
+        $file = getcwd() . '/tmp.txt';
+        if (is_file($file)) {
+            unlink($file);
+        }
+    }
+
     public function testConstruct() {
         $resource = fopen(getcwd().'/tmp.txt', 'a+');
         $stream = new SplStream($resource);
@@ -142,5 +150,60 @@ class StreamTest extends TestCase {
         $stream = new SplStream('Es');
         $stream->truncate(1);
         $this->assertEquals('E', $stream->__toString());
+    }
+
+    public function testDetachedStreamReportsStableState(): void
+    {
+        $stream = new SplStream('content');
+        $resource = $stream->detach();
+
+        $this->assertIsResource($resource);
+        $this->assertNull($stream->getSize());
+        $this->assertTrue($stream->eof());
+        $this->assertFalse($stream->isReadable());
+        $this->assertFalse($stream->isWritable());
+        $this->assertFalse($stream->isSeekable());
+        $this->assertSame([], $stream->getMetadata());
+        fclose($resource);
+    }
+
+    public function testDetachedStreamOperationsThrowDomainExceptions(): void
+    {
+        $stream = new SplStream();
+        $stream->detach();
+
+        foreach (['tell', 'getContents', 'truncate'] as $method) {
+            try {
+                $stream->{$method}();
+                $this->fail("{$method} should fail for a detached stream");
+            } catch (\RuntimeException) {
+                $this->addToAssertionCount(1);
+            }
+        }
+    }
+
+    public function testInvalidModeAndFalseResourceAreRejected(): void
+    {
+        foreach (
+            [
+                static fn () => new SplStream('', 'invalid'),
+                static fn () => new SplStream(false),
+            ] as $factory
+        ) {
+            try {
+                $factory();
+                $this->fail('Invalid stream input should fail');
+            } catch (\InvalidArgumentException) {
+                $this->addToAssertionCount(1);
+            }
+        }
+    }
+
+    public function testAlternativeReadWriteModeOrderingIsDetected(): void
+    {
+        $stream = new SplStream('', 'rb+');
+
+        $this->assertTrue($stream->isReadable());
+        $this->assertTrue($stream->isWritable());
     }
 }

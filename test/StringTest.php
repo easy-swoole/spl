@@ -194,4 +194,38 @@ class StringTest extends TestCase {
         $splString = new SplString('Hello,Easyswoole');
         $this->assertTrue($splString->startsWith('Hello'));
     }
+
+    public function testPadUsesSpaceWhenPadStringIsNull(): void
+    {
+        $this->assertSame('Easy  ', (string)(new SplString('Easy'))->pad(6));
+    }
+
+    public function testRegexCanReturnFullMatchesOrNull(): void
+    {
+        $string = new SplString('item-42');
+
+        $this->assertSame(['item-42', '42'], $string->regex('/item-(\d+)/', true));
+        $this->assertNull($string->regex('/missing/'));
+    }
+
+    public function testStripTagsAcceptsAllowedTagArray(): void
+    {
+        $string = new SplString('<p>Hello <b>world</b></p>');
+
+        $this->assertSame('Hello <b>world</b>', (string)$string->stripTags(['b']));
+    }
+
+    public function testEncodingConvertRejectsUndetectableInput(): void
+    {
+        $this->expectException(\RuntimeException::class);
+        (new SplString("\xFF"))->encodingConvert('UTF-8', ['UTF-8']);
+    }
+
+    public function testPrefixAndSuffixNeedlesAcceptArrays(): void
+    {
+        $string = new SplString('release-2026.zip');
+
+        $this->assertTrue($string->startsWith(['draft-', 'release-']));
+        $this->assertTrue($string->endsWith(['.tar', '.zip']));
+    }
 }

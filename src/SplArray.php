@@ -11,7 +11,7 @@ namespace EasySwoole\Spl;
 
 class SplArray extends \ArrayObject
 {
-    function __get($name)
+    public function __get(string $name): mixed
     {
         if (isset($this[$name])) {
             return $this[$name];
@@ -20,47 +20,54 @@ class SplArray extends \ArrayObject
         }
     }
 
-    function __set($name, $value): void
+    public function __set(string $name, mixed $value): void
     {
         $this[$name] = $value;
     }
 
-    function __toString(): string
+    public function __toString(): string
     {
-        return json_encode($this, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        return json_encode($this, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
     }
 
-    function getArrayCopy(): array
+    public function getArrayCopy(): array
     {
         return (array)$this;
     }
 
-    function set($path, $value): void
+    public function set(string $path, mixed $value): void
     {
-        $path = explode(".", $path);
+        $segments = explode('.', $path);
         $temp = $this;
-        while ($key = array_shift($path)) {
+        foreach ($segments as $key) {
             $temp = &$temp[$key];
         }
         $temp = $value;
     }
 
-    function unset($path)
+    public function unset(string $path): void
     {
-        $path = explode(".", $path);
+        $segments = explode('.', $path);
         $temp = $this;
-        while (count($path) > 1 && $key = array_shift($path)) {
+        while (count($segments) > 1) {
+            $key = array_shift($segments);
+            if (!is_array($temp) && !$temp instanceof \ArrayAccess) {
+                return;
+            }
+            if (!isset($temp[$key])) {
+                return;
+            }
             $temp = &$temp[$key];
         }
-        $finalKey = array_shift($path);
-        if (isset($temp[$finalKey])) {
+        $finalKey = array_shift($segments);
+        if ((is_array($temp) || $temp instanceof \ArrayAccess) && isset($temp[$finalKey])) {
             unset($temp[$finalKey]);
         }
     }
 
-    function get($key = null, $default = null,$target = null)
+    public function get(string|int|array|null $key = null, mixed $default = null, mixed $target = null): mixed
     {
-        if($target == null){
+        if ($target === null) {
             $target = $this->getArrayCopy();
         }
         if (is_null($key)) {
@@ -68,13 +75,16 @@ class SplArray extends \ArrayObject
         }
         $key = is_array($key) ? $key : explode('.', is_int($key) ? (string)$key : $key);
         while (!is_null($segment = array_shift($key))) {
-            if ((is_array($target) || $target instanceof \Traversable )&& isset($target[$segment])) {
+            if ((is_array($target) || $target instanceof \ArrayAccess) && isset($target[$segment])) {
                 $target = $target[$segment];
             } elseif (is_object($target) && isset($target->{$segment})) {
                 $target = $target->{$segment};
             } else {
                 if ($segment === '*') {
                     $data = [];
+                    if (!is_iterable($target)) {
+                        return $default;
+                    }
                     foreach ($target as $item) {
                         $data[] = self::get($key, $default,$item);
                     }
@@ -87,7 +97,7 @@ class SplArray extends \ArrayObject
         return $target;
     }
 
-    public function delete($key): void
+    public function delete(string $key): void
     {
         $this->unset($key);
     }
@@ -123,13 +133,13 @@ class SplArray extends \ArrayObject
 
 
     #[\ReturnTypeWillChange]
-    public function asort($flags = SORT_REGULAR): bool
+    public function asort(int $flags = SORT_REGULAR): bool
     {
         return parent::asort($flags);
     }
 
     #[\ReturnTypeWillChange]
-    public function ksort($flags = SORT_REGULAR): bool
+    public function ksort(int $flags = SORT_REGULAR): bool
     {
         return parent::ksort($flags);
     }
@@ -139,7 +149,7 @@ class SplArray extends \ArrayObject
      * @param int $sort_flags
      * @return SplArray
      */
-    public function sort($sort_flags = SORT_REGULAR): SplArray
+    public function sort(int $sort_flags = SORT_REGULAR): SplArray
     {
         $temp = $this->getArrayCopy();
         sort($temp, $sort_flags);
@@ -152,7 +162,7 @@ class SplArray extends \ArrayObject
      * @param null|string $index_key
      * @return SplArray
      */
-    public function column($column, $index_key = null): SplArray
+    public function column(int|string|null $column, int|string|null $index_key = null): SplArray
     {
         return new SplArray(array_column($this->getArrayCopy(), $column, $index_key));
     }
@@ -172,7 +182,7 @@ class SplArray extends \ArrayObject
      * @param bool         $exclude true则排除设置的键名 false则仅获取设置的键名
      * @return SplArray
      */
-    public function filter($keys, $exclude = false): SplArray
+    public function filter(string|array $keys, bool $exclude = false): SplArray
     {
         if (is_string($keys)) {
             $keys = explode(',', $keys);
@@ -189,9 +199,9 @@ class SplArray extends \ArrayObject
     }
 
 
-    public function keys($path = null): array
+    public function keys(string|int|null $path = null): array
     {
-        if (!empty($path)) {
+        if ($path !== null && $path !== '') {
             $temp = $this->get($path);
             if (is_array($temp)) {
                 return array_keys($temp);
@@ -219,13 +229,13 @@ class SplArray extends \ArrayObject
         return $this;
     }
 
-    public function loadArray(array $data)
+    public function loadArray(array $data): SplArray
     {
         parent::__construct($data);
         return $this;
     }
 
-    function merge(array $data)
+    public function merge(array $data): SplArray
     {
         return $this->loadArray($data + $this->getArrayCopy());
     }
@@ -240,7 +250,7 @@ class SplArray extends \ArrayObject
         ]
     ]);
      */
-    public function toXML($CD_DATA = false, $rootName = 'xml', $subArrayItemKey = 'item')
+    public function toXML(bool $CD_DATA = false, string $rootName = 'xml', string $subArrayItemKey = 'item'): string
     {
         $data = $this->getArrayCopy();
         if ($CD_DATA) {
@@ -249,7 +259,7 @@ class SplArray extends \ArrayObject
              */
             $xml = new class("<{$rootName}></{$rootName}>") extends \SimpleXMLElement
             {
-                public function addCData($cdata_text)
+                public function addCData(string $cdata_text): void
                 {
                     $dom = dom_import_simplexml($this);
                     $cdata = $dom->ownerDocument->createCDATASection((string)$cdata_text);
@@ -259,7 +269,7 @@ class SplArray extends \ArrayObject
         } else {
             $xml = new \SimpleXMLElement( "<{$rootName} ></{$rootName}>");
         }
-        $parser = function ($xml, $data) use (&$parser, $CD_DATA, $subArrayItemKey) {
+        $parser = function (\SimpleXMLElement $xml, array $data) use (&$parser, $CD_DATA, $subArrayItemKey): void {
             foreach ($data as $k => $v) {
                 if (is_array($v)) {
                     if (!is_numeric($k)) {
@@ -270,13 +280,13 @@ class SplArray extends \ArrayObject
                     $parser($ch, $v);
                 } else {
                     if (is_numeric($k)) {
-                        $xml->addChild($k, $v);
+                        $xml->addChild($subArrayItemKey, (string)$v);
                     } else {
                         if ($CD_DATA) {
                             $n = $xml->addChild($k);
-                            $n->addCData($v);
+                            $n->addCData((string)$v);
                         } else {
-                            $xml->addChild($k, $v);
+                            $xml->addChild($k, (string)$v);
                         }
                     }
                 }
@@ -285,6 +295,9 @@ class SplArray extends \ArrayObject
         $parser($xml, $data);
         unset($parser);
         $str = $xml->asXML();
+        if ($str === false) {
+            throw new \RuntimeException('Unable to serialize XML');
+        }
         return substr($str, strpos($str, "\n") + 1);
     }
 

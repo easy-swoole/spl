@@ -6,20 +6,30 @@ namespace EasySwoole\Spl;
 
 class SplDoubleLink
 {
-    private $next;
-    private $pre;
+    private ?SplDoubleLink $next = null;
+    private ?SplDoubleLink $pre = null;
 
-    function hashNext():bool
+    public function hashNext(): bool
     {
-        return (bool)$this->next;
+        return $this->hasNext();
     }
 
-    function hashPre():bool
+    public function hashPre(): bool
     {
-        return (bool)$this->pre;
+        return $this->hasPre();
     }
 
-    function next(...$arg):SplDoubleLink
+    public function hasNext(): bool
+    {
+        return $this->next !== null;
+    }
+
+    public function hasPre(): bool
+    {
+        return $this->pre !== null;
+    }
+
+    public function next(mixed ...$arg): SplDoubleLink
     {
         if(!$this->next){
             $this->next = $this->newInstance(...$arg);
@@ -27,7 +37,7 @@ class SplDoubleLink
         return $this->next;
     }
 
-    function pre(...$arg):SplDoubleLink
+    public function pre(mixed ...$arg): SplDoubleLink
     {
         if(!$this->pre){
             $this->pre = $this->newInstance(...$arg);
@@ -35,19 +45,19 @@ class SplDoubleLink
         return $this->pre;
     }
 
-    function delPre()
+    public function delPre(): SplDoubleLink
     {
         $this->pre = null;
         return $this;
     }
 
-    function delNext()
+    public function delNext(): SplDoubleLink
     {
         $this->next = null;
         return $this;
     }
 
-    private function newInstance(...$arg):SplDoubleLink
+    private function newInstance(mixed ...$arg): SplDoubleLink
     {
         $ref = new \ReflectionClass(static::class);
         return $ref->newInstanceArgs($arg);

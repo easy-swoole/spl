@@ -2,9 +2,8 @@
 
 namespace EasySwoole\Spl;
 
-
-
 use EasySwoole\Spl\Attribute\ConvertBean;
+use EasySwoole\Spl\AbstractInterface\ConvertBeanInterface;
 
 class SplBean implements \JsonSerializable
 {
@@ -39,16 +38,11 @@ class SplBean implements \JsonSerializable
                 if ($property->isStatic()) {
                     continue;
                 }
-                $convertBean = null;
-                $all = $property->getAttributes();
-                foreach ($all as $sub){
-                    $name = $sub->getName();
-                    $ref = new \ReflectionClass($name);
-                    if($ref->isSubclassOf(ConvertBean::class) || ($name == ConvertBean::class)){
-                        $convertBean = new $name(...$sub->getArguments());
-                        break;
-                    }
-                }
+                $attributes = $property->getAttributes(
+                    ConvertBean::class,
+                    \ReflectionAttribute::IS_INSTANCEOF
+                );
+                $convertBean = isset($attributes[0]) ? $attributes[0]->newInstance() : null;
                 /**
                  *@var ConvertBean $convertBean
                  */
@@ -93,7 +87,7 @@ class SplBean implements \JsonSerializable
         return array_keys($this->properties);
     }
 
-    function toArray(int|callable|null $filter = null): array
+    public function toArray(int|callable|null $filter = null): array
     {
         $data = [];
         foreach ($this->properties as $key => $property){
@@ -103,7 +97,7 @@ class SplBean implements \JsonSerializable
                     if($this->{$key} instanceof SplBean){
                         $data[$key] = $this->{$key}->jsonSerialize();
                     }else{
-                        if(method_exists($this->{$key},'toValue')){
+                        if($this->{$key} instanceof ConvertBeanInterface){
                             $data[$key] = $this->{$key}->toValue();
                         }else{
                             $data[$key] = $this->{$key};
@@ -139,7 +133,7 @@ class SplBean implements \JsonSerializable
         return $data;
     }
 
-    final public function getProperty($name)
+    final public function getProperty(string $name): mixed
     {
         if (key_exists($name,$this->properties)) {
             return $this->$name;
@@ -153,9 +147,9 @@ class SplBean implements \JsonSerializable
         return $this->toArray();
     }
 
-    public function __toString()
+    public function __toString(): string
     {
-        return json_encode($this->jsonSerialize());
+        return json_encode($this->jsonSerialize(), JSON_THROW_ON_ERROR);
     }
 
     protected function initialize(): void
@@ -163,7 +157,7 @@ class SplBean implements \JsonSerializable
 
     }
 
-    public function restore(array $data = [])
+    public function restore(array $data = []): static
     {
         foreach ($this->properties as $key => $property){
             if(key_exists($key,$data)){
@@ -172,6 +166,15 @@ class SplBean implements \JsonSerializable
                     $convert = $this->convertMap[$key];
                     $class = $convert->className;
                     $val = $data[$key];
+                    if($val === null){
+                        if($convert->allowNull){
+                            $this->{$key} = null;
+                            continue;
+                        }
+                        throw new \InvalidArgumentException(
+                            "data for property {$key} at class ".static::class." cannot be null"
+                        );
+                    }
                     if($convert->iscConvert2SplBean){
                         if(is_array($val)){
                             $this->{$key} = new $class($val);
@@ -180,14 +183,12 @@ class SplBean implements \JsonSerializable
                             if(is_array($arr)){
                                 $this->{$key} = new $class($arr);
                             }else{
-                                throw new \Exception("data for property {$key} at class {$class} not a json format");
+                                throw new \InvalidArgumentException("data for property {$key} at class {$class} not a json format");
                             }
                         }elseif(is_object($val) && ($val instanceof $class)){
                             $this->{$key} = $val;
                         }else{
-                            if(!empty($val) && (!$convert->allowNull)){
-                                throw new \Exception("data for property {$key} at class {$class} not a json format");
-                            }
+                            throw new \InvalidArgumentException("data for property {$key} at class {$class} not a json format");
                         }
                     }else{
                         if($val instanceof $class){

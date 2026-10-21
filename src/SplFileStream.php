@@ -11,17 +11,27 @@ namespace EasySwoole\Spl;
 
 class SplFileStream extends SplStream
 {
-    function __construct($file,$mode = 'c+')
+    public function __construct(string $file, string $mode = 'c+')
     {
-        $fp = fopen($file,$mode);
+        self::assertValidMode($mode);
+        try {
+            $fp = @fopen($file, $mode);
+        } catch (\ValueError $exception) {
+            throw new \InvalidArgumentException("Invalid file mode: {$mode}", 0, $exception);
+        }
+        if ($fp === false) {
+            throw new \RuntimeException("Unable to open file: {$file}");
+        }
         parent::__construct($fp);
     }
 
-    function lock($mode = LOCK_EX){
-        return flock($this->getStreamResource(),$mode);
+    public function lock(int $mode = LOCK_EX): bool
+    {
+        return flock($this->getStreamResource(), $mode);
     }
 
-    function unlock($mode = LOCK_UN){
-        return flock($this->getStreamResource(),$mode);
+    public function unlock(int $mode = LOCK_UN): bool
+    {
+        return flock($this->getStreamResource(), $mode);
     }
 }

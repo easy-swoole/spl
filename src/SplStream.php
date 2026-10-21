@@ -11,24 +11,17 @@ namespace EasySwoole\Spl;
 
 class SplStream
 {
-    private $stream;
-    private $seekable;
-    private $readable;
-    private $writable;
-    private $readList = [
-        'r' => true, 'w+' => true, 'r+' => true, 'x+' => true, 'c+' => true,
-        'rb' => true, 'w+b' => true, 'r+b' => true, 'x+b' => true,
-        'c+b' => true, 'rt' => true, 'w+t' => true, 'r+t' => true,
-        'x+t' => true, 'c+t' => true, 'a+' => true
-    ];
-    private $writeList = [
-        'w' => true, 'w+' => true, 'rw' => true, 'r+' => true, 'x+' => true,
-        'c+' => true, 'wb' => true, 'w+b' => true, 'r+b' => true,
-        'x+b' => true, 'c+b' => true, 'w+t' => true, 'r+t' => true,
-        'x+t' => true, 'c+t' => true, 'a' => true, 'a+' => true
-    ];
-    function __construct($resource = '',$mode = 'r+')
+    /** @var resource|null */
+    private mixed $stream = null;
+    private bool $seekable = false;
+    private bool $readable = false;
+    private bool $writable = false;
+    public function __construct(mixed $resource = '', string $mode = 'r+')
     {
+        self::assertValidMode($mode);
+        if ($resource === false) {
+            throw new \InvalidArgumentException('Invalid stream resource');
+        }
         switch (gettype($resource)) {
             case 'resource': {
                 $this->stream = $resource;
@@ -37,7 +30,7 @@ class SplStream
             case 'object':{
                 if(method_exists($resource, '__toString')) {
                     $resource = $resource->__toString();
-                    $this->stream = fopen('php://memory', $mode);
+                    $this->stream = $this->openMemoryStream($mode);
                     if ($resource !== '') {
                         fwrite($this->stream, $resource);
                     }
@@ -47,13 +40,13 @@ class SplStream
                 }
             }
             default:{
-                $this->stream  = fopen('php://memory', $mode);
+                $this->stream = $this->openMemoryStream($mode);
                 try{
                     $resource = (string)$resource;
                     if ($resource !== '') {
                         fwrite($this->stream, $resource);
                     }
-                }catch (\Exception $exception){
+                }catch (\Throwable $exception){
                     throw new \InvalidArgumentException('Invalid resource type: ' . gettype($resource));
                 }
             }
@@ -61,22 +54,24 @@ class SplStream
         $info = stream_get_meta_data($this->stream);
         $this->seekable = $info['seekable'];
         $this->seek(0);
-        $this->readable = isset($this->readList[$info['mode']]);
-        $this->writable =  isset($this->writeList[$info['mode']]);
+        $streamMode = $info['mode'];
+        $this->readable = $streamMode[0] === 'r' || str_contains($streamMode, '+');
+        $this->writable = in_array($streamMode[0], ['w', 'a', 'x', 'c'], true)
+            || str_contains($streamMode, '+');
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         // TODO: Implement __toString() method.
         try {
             $this->seek(0);
             return (string) stream_get_contents($this->stream);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return '';
         }
     }
 
-    public function close()
+    public function close(): void
     {
         // TODO: Implement close() method.
         $res = $this->detach();
@@ -85,7 +80,7 @@ class SplStream
         }
     }
 
-    public function detach()
+    public function detach(): mixed
     {
         // TODO: Implement detach() method.
         if (!isset($this->stream)) {
@@ -93,13 +88,16 @@ class SplStream
         }
         $this->readable = $this->writable = $this->seekable = false;
         $result = $this->stream;
-        unset($this->stream);
+        $this->stream = null;
         return $result;
     }
 
-    public function getSize()
+    public function getSize(): ?int
     {
         // TODO: Implement getSize() method.
+        if (!is_resource($this->stream)) {
+            return null;
+        }
         $stats = fstat($this->stream);
         if (isset($stats['size'])) {
             return $stats['size'];
@@ -108,9 +106,12 @@ class SplStream
         }
     }
 
-    public function tell()
+    public function tell(): int
     {
         // TODO: Implement tell() method.
+        if (!is_resource($this->stream)) {
+            throw new \RuntimeException('Cannot determine position of a detached stream');
+        }
         $result = ftell($this->stream);
         if ($result === false) {
             throw new \RuntimeException('Unable to determine stream position');
@@ -118,19 +119,19 @@ class SplStream
         return $result;
     }
 
-    public function eof()
+    public function eof(): bool
     {
         // TODO: Implement eof() method.
-        return !$this->stream || feof($this->stream);
+        return !is_resource($this->stream) || feof($this->stream);
     }
 
-    public function isSeekable()
+    public function isSeekable(): bool
     {
         // TODO: Implement isSeekable() method.
         return $this->seekable;
     }
 
-    public function seek($offset, $whence = SEEK_SET)
+    public function seek(int $offset, int $whence = SEEK_SET): void
     {
         // TODO: Implement seek() method.
         if (!$this->seekable) {
@@ -141,19 +142,19 @@ class SplStream
         }
     }
 
-    public function rewind()
+    public function rewind(): void
     {
         // TODO: Implement rewind() method.
         $this->seek(0);
     }
 
-    public function isWritable()
+    public function isWritable(): bool
     {
         // TODO: Implement isWritable() method.
         return $this->writable;
     }
 
-    public function write($string)
+    public function write(string $string): int
     {
         // TODO: Implement write() method.
         if (!$this->writable) {
@@ -166,13 +167,13 @@ class SplStream
         return $result;
     }
 
-    public function isReadable()
+    public function isReadable(): bool
     {
         // TODO: Implement isReadable() method.
         return $this->readable;
     }
 
-    public function read($length)
+    public function read(int $length): string
     {
         // TODO: Implement read() method.
         if (!$this->readable) {
@@ -191,10 +192,13 @@ class SplStream
         return $string;
     }
 
-    public function getContents()
+    public function getContents(): string
     {
         // TODO: Implement getContents() method.
         //注意与__toString的区别
+        if (!$this->readable || !is_resource($this->stream)) {
+            throw new \RuntimeException('Cannot read from a non-readable stream');
+        }
         $contents = stream_get_contents($this->stream);
         if ($contents === false) {
             throw new \RuntimeException('Unable to read stream contents');
@@ -202,16 +206,16 @@ class SplStream
         return $contents;
     }
 
-    public function getMetadata($key = null)
+    public function getMetadata(?string $key = null): mixed
     {
         // TODO: Implement getMetadata() method.
         if (!isset($this->stream)) {
             return $key ? null : [];
-        } elseif (!$key) {
+        } elseif ($key === null) {
             return stream_get_meta_data($this->stream);
         } else {
             $meta = stream_get_meta_data($this->stream);
-            return isset($meta[$key]) ? $meta[$key] : null;
+            return $meta[$key] ?? null;
         }
     }
 
@@ -221,11 +225,38 @@ class SplStream
         $this->close();
     }
 
-    function getStreamResource(){
+    /** @return resource|null */
+    public function getStreamResource(): mixed
+    {
         return $this->stream;
     }
 
-    function truncate($size = 0){
-        return ftruncate($this->stream,$size);
+    public function truncate(int $size = 0): bool
+    {
+        if (!is_resource($this->stream)) {
+            throw new \RuntimeException('Cannot truncate a detached stream');
+        }
+        return ftruncate($this->stream, $size);
+    }
+
+    /** @return resource */
+    private function openMemoryStream(string $mode): mixed
+    {
+        try {
+            $stream = @fopen('php://memory', $mode);
+        } catch (\ValueError $exception) {
+            throw new \InvalidArgumentException("Invalid stream mode: {$mode}", 0, $exception);
+        }
+        if ($stream === false) {
+            throw new \InvalidArgumentException("Invalid stream mode: {$mode}");
+        }
+        return $stream;
+    }
+
+    protected static function assertValidMode(string $mode): void
+    {
+        if (preg_match('/^[rwaxc](?:[bt]?\+|\+[bt]?|[bt])?$/', $mode) !== 1) {
+            throw new \InvalidArgumentException("Invalid stream mode: {$mode}");
+        }
     }
 }

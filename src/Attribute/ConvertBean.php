@@ -13,7 +13,7 @@ class ConvertBean
 
     public bool $iscConvert2SplBean;
 
-    function __construct(
+    public function __construct(
         public string $className,
         public bool $createObjectWhenNull = false
     ){

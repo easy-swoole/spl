@@ -8,6 +8,7 @@
 namespace EasySwoole\Spl\Test;
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DependsUsingShallowClone;
 
 use EasySwoole\Spl\SplArray;
 
@@ -44,7 +45,8 @@ class ArrayTest extends TestCase {
      * @depends clone testSet
      * @param SplArray $splArrayObj
      */
-    public function testGet( SplArray $splArrayObj) {
+    #[DependsUsingShallowClone('testSet')]
+    public function testGet(SplArray $splArrayObj) {
 
         // 测试第一层的key
         $this->assertEquals(
@@ -69,6 +71,7 @@ class ArrayTest extends TestCase {
      * @depends clone testSet
      * CreateTime: 2019/9/10 下午11:29
      */
+    #[DependsUsingShallowClone('testSet')]
     public function testTostring(SplArray $splArrayObj) {
         $this->assertJsonStringEqualsJsonString(
             json_encode($splArrayObj, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),
@@ -83,6 +86,7 @@ class ArrayTest extends TestCase {
      * @param SplArray $splArrayObj
      * CreateTime: 2019/9/10 下午11:37
      */
+    #[DependsUsingShallowClone('testSet')]
     public function testGetArrayCopy(SplArray $splArrayObj) {
         $this->assertEquals(
             [
@@ -108,6 +112,7 @@ class ArrayTest extends TestCase {
      * @param $splArrayObj SplArray
      * CreateTime: 2019/9/10 下午11:44
      */
+    #[DependsUsingShallowClone('testSet')]
     public function testUnset(SplArray $splArrayObj) {
 
         // 销毁red元素
@@ -147,6 +152,7 @@ class ArrayTest extends TestCase {
      * @depends clone testSet
      * @param SplArray $splArrayObj
      */
+    #[DependsUsingShallowClone('testSet')]
     public function testDelete(SplArray $splArrayObj) {
         $splArrayObj->delete('color');
         $this->assertEquals(
@@ -204,6 +210,7 @@ class ArrayTest extends TestCase {
      * CreateTime: 2019/9/11 上午12:32
      * @param SplArray $splArrayObj
      */
+    #[DependsUsingShallowClone('testSet')]
     public function testAsort(SplArray $splArrayObj) {
        $splArrayObj->asort();
         $this->assertEquals(
@@ -230,6 +237,7 @@ class ArrayTest extends TestCase {
      * CreateTime: 2019/9/11 上午12:35
      * @param SplArray $splArrayObj
      */
+    #[DependsUsingShallowClone('testSet')]
     public function testKsort(SplArray $splArrayObj) {
         $splArrayObj->ksort();
         $this->assertEquals(
@@ -256,6 +264,7 @@ class ArrayTest extends TestCase {
      * CreateTime: 2019/9/11 上午12:35
      * @param SplArray $splArrayObj
      */
+    #[DependsUsingShallowClone('testSet')]
     public function testSort(SplArray $splArrayObj) {
         $this->assertEquals(
             [
@@ -282,6 +291,7 @@ class ArrayTest extends TestCase {
      * @param SplArray $splArrayObj
      * @return bool
      */
+    #[DependsUsingShallowClone('testSet')]
     public function testColumn(SplArray $splArrayObj) {
         $this->assertEquals(
             [12],
@@ -343,6 +353,7 @@ class ArrayTest extends TestCase {
      * @depends clone testSet
      * @param SplArray $splArrayObj
      */
+    #[DependsUsingShallowClone('testSet')]
     public function testKeys(SplArray $splArrayObj) {
         $this->assertEquals(
             ['red', 'blue', 'green'],
@@ -356,6 +367,7 @@ class ArrayTest extends TestCase {
      * @depends clone testSet
      * @param SplArray $splArrayObj
      */
+    #[DependsUsingShallowClone('testSet')]
     public function testValues(SplArray $splArrayObj) {
         $this->assertEquals(
             [
@@ -380,6 +392,7 @@ class ArrayTest extends TestCase {
      * @depends clone testSet
      * @param SplArray $splArrayObj
      */
+    #[DependsUsingShallowClone('testSet')]
     public function testFlush(SplArray $splArrayObj) {
         $this->assertEquals(
             [],
@@ -393,6 +406,7 @@ class ArrayTest extends TestCase {
      * @depends clone testSet
      * @param SplArray $splArrayObj
      */
+    #[DependsUsingShallowClone('testSet')]
     public function testLoadArray(SplArray $splArrayObj) {
         $this->assertEquals(
             [
@@ -412,6 +426,7 @@ class ArrayTest extends TestCase {
      * @depends clone testSet
      * @param SplArray $splArrayObj
      */
+    #[DependsUsingShallowClone('testSet')]
     public function testToXML(SplArray $splArrayObj) {
         $this->assertEquals(
             "<xml><fruit><apple>3</apple><orange>1</orange><grape>4</grape></fruit><color><red>12</red><blue>8</blue><green>6</green></color></xml>\n",
@@ -481,5 +496,67 @@ class ArrayTest extends TestCase {
                 "sum"=>'s2',
             ],
         ],$splArray->get('a.*'));
+    }
+
+    public function testNumericPathSegmentsCanBeSetAndUnset(): void
+    {
+        $array = new SplArray(['items' => []]);
+        $array->set('items.0.name', 'first');
+
+        $this->assertSame('first', $array->get('items.0.name'));
+        $array->unset('items.0.name');
+        $this->assertSame([], $array->get('items.0'));
+    }
+
+    public function testUnsettingMissingNestedPathDoesNotCreateIt(): void
+    {
+        $array = new SplArray(['existing' => true]);
+        $array->unset('missing.child');
+
+        $this->assertSame(['existing' => true], $array->getArrayCopy());
+    }
+
+    public function testGetReturnsDefaultForNonArrayAccessTraversable(): void
+    {
+        $iterator = new \IteratorIterator(new \ArrayIterator(['name' => 'value']));
+
+        $this->assertSame('fallback', (new SplArray())->get('name', 'fallback', $iterator));
+    }
+
+    public function testGetDoesNotReplaceExplicitFalsyTargetWithRootArray(): void
+    {
+        $array = new SplArray(['root' => true]);
+
+        $this->assertFalse($array->get(null, 'fallback', false));
+    }
+
+    public function testKeysCanReadNumericZeroPath(): void
+    {
+        $array = new SplArray([0 => ['first' => 1]]);
+
+        $this->assertSame(['first'], $array->keys(0));
+    }
+
+    public function testXmlUsesConfiguredElementNameForNumericScalarKeys(): void
+    {
+        $array = new SplArray(['values' => ['one', 'two']]);
+
+        $this->assertSame(
+            "<xml><values><entry>one</entry><entry>two</entry></values></xml>\n",
+            $array->toXML(false, 'xml', 'entry')
+        );
+    }
+
+    public function testStringConversionThrowsWhenJsonEncodingFails(): void
+    {
+        $resource = fopen('php://memory', 'r');
+        $array = new SplArray(['resource' => $resource]);
+
+        try {
+            $this->expectException(\JsonException::class);
+            (string)$array;
+        } finally {
+            fclose($resource);
+        }
     }
 }
