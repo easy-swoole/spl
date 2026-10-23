@@ -69,7 +69,7 @@ class SplBean implements \JsonSerializable
                     $this->properties[$property->name] = true;
                     $this->convertMap[$property->name] = $convertBean;
                 }else{
-                    if($property->getDefaultValue() !== null){
+                    if($property->hasDefaultValue()){
                         $this->{$property->name} = $property->getDefaultValue();
                     }else{
                         $types = $property->getType();
