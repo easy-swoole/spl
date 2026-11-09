@@ -12,6 +12,29 @@ class SplBean implements \JsonSerializable
     const FILTER_NULL = 3;
     const FILTER_EMPTY = 4;
 
+    /** @var array<class-string, array<string, array{property: \ReflectionProperty, attributes: list<\ReflectionAttribute>}>> */
+    private static array $propertyMetadata = [];
+
+    /** 仅共享反射描述符，Attribute 实例和转换业务对象仍属于每个 Bean。 */
+    private static function metadataFor(string $class): array
+    {
+        if (!isset(self::$propertyMetadata[$class])) {
+            $metadata = [];
+            foreach ((new \ReflectionClass($class))->getProperties(
+                \ReflectionProperty::IS_PUBLIC | \ReflectionProperty::IS_PROTECTED
+            ) as $property) {
+                if (!$property->isStatic()) {
+                    $metadata[$property->name] = [
+                        'property' => $property,
+                        'attributes' => $property->getAttributes(ConvertBean::class, \ReflectionAttribute::IS_INSTANCEOF),
+                    ];
+                }
+            }
+            self::$propertyMetadata[$class] = $metadata;
+        }
+        return self::$propertyMetadata[$class];
+    }
+
     private array|null $properties = null;
 
     private array $convertMap = [];
@@ -30,19 +53,12 @@ class SplBean implements \JsonSerializable
     {
         if($this->properties == null){
             $this->properties = [];
-            $class = new \ReflectionClass($this);
-            $list = $class->getProperties(
-                \ReflectionProperty::IS_PUBLIC | \ReflectionProperty::IS_PROTECTED
-            );
-            foreach ($list as $property) {
-                if ($property->isStatic()) {
-                    continue;
-                }
-                $attributes = $property->getAttributes(
-                    ConvertBean::class,
-                    \ReflectionAttribute::IS_INSTANCEOF
-                );
+            foreach (self::metadataFor(static::class) as $metadata) {
+                $property = $metadata['property'];
+                $attributes = $metadata['attributes'];
                 $convertBean = isset($attributes[0]) ? $attributes[0]->newInstance() : null;
+                // 构造器提升属性已由 PHP 赋值，不再以属性默认值覆盖；转换元数据仍正常登记。
+                $preservePromoted = $property->isPromoted() && $property->isInitialized($this);
                 /**
                  *@var ConvertBean $convertBean
                  */
@@ -51,7 +67,7 @@ class SplBean implements \JsonSerializable
                     if($types){
                         $convertBean->allowNull = $types->allowsNull();
                     }
-                    if(!isset($data[$property->getName()])){
+                    if(!$preservePromoted && !isset($data[$property->getName()])){
                         if($convertBean->allowNull){
                             $this->{$property->name} = null;
                         }else{
@@ -69,13 +85,15 @@ class SplBean implements \JsonSerializable
                     $this->properties[$property->name] = true;
                     $this->convertMap[$property->name] = $convertBean;
                 }else{
-                    if($property->getDefaultValue() !== null){
-                        $this->{$property->name} = $property->getDefaultValue();
-                    }else{
-                        $types = $property->getType();
-                        if($types){
-                            if($types->allowsNull()){
-                                $this->{$property->name} = null;
+                    if(!$preservePromoted){
+                        if($property->getDefaultValue() !== null){
+                            $this->{$property->name} = $property->getDefaultValue();
+                        }else{
+                            $types = $property->getType();
+                            if($types){
+                                if($types->allowsNull()){
+                                    $this->{$property->name} = null;
+                                }
                             }
                         }
                     }
@@ -90,8 +108,9 @@ class SplBean implements \JsonSerializable
     public function toArray(int|callable|null $filter = null): array
     {
         $data = [];
+        $metadata = self::metadataFor(static::class);
         foreach ($this->properties as $key => $property){
-            $temp = new \ReflectionProperty(static::class,$key);
+            $temp = $metadata[$key]['property'];
             if($temp->isInitialized($this)){
                 if(is_object($this->{$key})){
                     if($this->{$key} instanceof SplBean){
